@@ -10,7 +10,7 @@ on:
     - CHANGELOG.md
   workflow_dispatch: {}
 env:
-  PROVIDER: provider-boilerplate
+  PROVIDER: pocket-id
   TRAVIS_OS_NAME: linux
   GOVERSION: "1.21.x"
   NODEVERSION: "20.x"
@@ -166,7 +166,7 @@ jobs:
 
         git stash pop
 
-        git add sdk provider/cmd/pulumi-resource-provider-boilerplate/schema.json
+        git add sdk provider/cmd/pulumi-resource-pocket-id/schema.json
 
         git reset sdk/python/*/pulumi-plugin.json \
             sdk/python/pyproject.toml \
@@ -314,7 +314,7 @@ jobs:
 
         git stash pop
 
-        git add sdk provider/cmd/pulumi-resource-provider-boilerplate/schema.json
+        git add sdk provider/cmd/pulumi-resource-pocket-id/schema.json
 
         git reset sdk/python/*/pulumi-plugin.json \
             sdk/python/pyproject.toml \

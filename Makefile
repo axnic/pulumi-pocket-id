@@ -1,18 +1,18 @@
-PROJECT_NAME := Pulumi Provider Boilerplate
+PROJECT_NAME := Pulumi Pocket-ID Provider
 
-PACK             := provider-boilerplate
+PACK             := pocket-id
 PACKDIR          := sdk
-PROJECT          := github.com/pulumi/pulumi-provider-boilerplate
-NODE_MODULE_NAME := @pulumi/boilerplate
-NUGET_PKG_NAME   := Pulumi.Boilerplate
+PROJECT          := github.com/axnic/pulumi-pocket-id
+NODE_MODULE_NAME := @pulumi/pocket-id
+NUGET_PKG_NAME   := Pulumi.PocketId
 
 PROVIDER        := pulumi-resource-${PACK}
 PROVIDER_PATH   := provider
-VERSION_PATH    := ${PROVIDER_PATH}/version.Version
+VERSION_PATH    := ${PROVIDER_PATH}.Version
 
 PULUMI          := pulumi
 
-SCHEMA_FILE     := provider/cmd/pulumi-resource-provider-boilerplate/schema.json
+SCHEMA_FILE     := provider/cmd/pulumi-resource-pocket-id/schema.json
 export GOPATH   := $(shell go env GOPATH)
 
 WORKING_DIR     := $(shell pwd)
@@ -22,13 +22,13 @@ prepare:
 	@if test -z "${NAME}"; then echo "NAME not set"; exit 1; fi
 	@if test -z "${REPOSITORY}"; then echo "REPOSITORY not set"; exit 1; fi
 	@if test -z "${ORG}"; then echo "ORG not set"; exit 1; fi
-	@if test ! -d "provider/cmd/pulumi-resource-provider-boilerplate"; then "Project already prepared"; exit 1; fi # SED_SKIP
+	@if test ! -d "provider/cmd/pulumi-resource-pocket-id"; then "Project already prepared"; exit 1; fi # SED_SKIP
 
 	# SED needs to not fail when encountering unicode characters
 	LC_CTYPE=C 
 	LANG=C
 
-	mv "provider/cmd/pulumi-resource-provider-boilerplate" provider/cmd/pulumi-resource-${NAME} # SED_SKIP
+	mv "provider/cmd/pulumi-resource-pocket-id" provider/cmd/pulumi-resource-${NAME} # SED_SKIP
 	
 	# In MacOS the -i parameter needs an empty  to execute in place.
 	if [[ "${OS}" == "Darwin" ]]; then \

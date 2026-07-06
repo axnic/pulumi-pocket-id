@@ -1,0 +1,81 @@
+// Copyright 2025, axnic.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package tests
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	p "github.com/pulumi/pulumi-go-provider"
+	"github.com/pulumi/pulumi/sdk/v3/go/property"
+)
+
+func TestUserGroupLifecycle(t *testing.T) {
+	t.Parallel()
+	fake, srv := newFakeServer(t, "test-key")
+	prov := testServer(t)
+	configure(t, prov, srv.URL, fake.apiKey)
+
+	// Create
+	createResp, err := prov.Create(p.CreateRequest{
+		Urn: urn("UserGroup"),
+		Properties: property.NewMap(map[string]property.Value{
+			"friendlyName": property.New("Engineers"),
+			"name":         property.New("engineers"),
+		}),
+	})
+	require.NoError(t, err)
+	id := createResp.ID
+	assert.Contains(t, id, "grp-")
+	assert.Equal(t, "Engineers", createResp.Properties.Get("friendlyName").AsString())
+
+	// Read
+	readResp, err := prov.Read(p.ReadRequest{
+		ID:  id,
+		Urn: urn("UserGroup"),
+		Properties: property.NewMap(map[string]property.Value{
+			"friendlyName": property.New("Engineers"),
+			"name":         property.New("engineers"),
+		}),
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "engineers", readResp.Properties.Get("name").AsString())
+
+	// Update
+	updateResp, err := prov.Update(p.UpdateRequest{
+		ID:  id,
+		Urn: urn("UserGroup"),
+		State: property.NewMap(map[string]property.Value{
+			"friendlyName": property.New("Engineers"),
+			"name":         property.New("engineers"),
+		}),
+		Inputs: property.NewMap(map[string]property.Value{
+			"friendlyName": property.New("Engineering"),
+			"name":         property.New("engineers"),
+		}),
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "Engineering", updateResp.Properties.Get("friendlyName").AsString())
+
+	// Delete
+	err = prov.Delete(p.DeleteRequest{
+		ID:         id,
+		Urn:        urn("UserGroup"),
+		Properties: createResp.Properties,
+	})
+	require.NoError(t, err)
+}

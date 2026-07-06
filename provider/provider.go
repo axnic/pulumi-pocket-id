@@ -1,4 +1,4 @@
-// Copyright 2025, Pulumi Corporation.
+// Copyright 2025, axnic.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package provider implements a simple random resource and component.
+// Package provider implements the Pulumi provider for Pocket-ID.
 package provider
 
 import (
@@ -27,17 +27,21 @@ import (
 var Version string
 
 // Name controls how this provider is referenced in package names and elsewhere.
-const Name string = "provider-boilerplate"
+const Name string = "pocket-id"
 
-// Provider creates a new instance of the provider.
+// Provider creates a new instance of the Pocket-ID provider.
 func Provider() p.Provider {
-	p, err := infer.NewProviderBuilder().
-		WithDisplayName("pulumi-provider-boilerplate").
-		WithDescription("An example built with pulumi-go-provider.").
-		WithHomepage("https://www.pulumi.com").
-		WithNamespace("pulumi").
-		WithResources(infer.Resource(Random{})).
-		WithComponents(infer.ComponentF(NewRandomComponent)).
+	prov, err := infer.NewProviderBuilder().
+		WithDisplayName("pocket-id").
+		WithDescription("A Pulumi provider for Pocket-ID, a passkey-only OIDC provider.").
+		WithHomepage("https://github.com/pocket-id/pocket-id").
+		WithNamespace("pocketid").
+		WithResources(
+			infer.Resource(&OidcClient{}),
+			infer.Resource(&User{}),
+			infer.Resource(&UserGroup{}),
+			infer.Resource(&CustomClaims{}),
+		).
 		WithConfig(infer.Config(&Config{})).
 		WithModuleMap(map[tokens.ModuleName]tokens.ModuleName{
 			"provider": "index",
@@ -45,10 +49,5 @@ func Provider() p.Provider {
 	if err != nil {
 		panic(fmt.Errorf("unable to build provider: %w", err))
 	}
-	return p
-}
-
-// Config defines provider-level configuration
-type Config struct {
-	Scream *bool `pulumi:"itsasecret,optional"`
+	return prov
 }

@@ -1,0 +1,68 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Unit tests (no acceptance)
+        run: go test ./tests/... -count=1 -v
+
+  acceptance:
+    name: Acceptance (Pocket-ID ${{ matrix.pocket-id }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # STATIC_API_KEY support requires Pocket-ID >= v2.3.0 (PR #1229).
+        # `v2` tracks the latest v2.x release.
+        pocket-id: ["v2.3.0", "v2.6.0", "v2.9.0", "v2"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Build provider
+        run: go build ./...
+
+      - name: Start Pocket-ID ${{ matrix.pocket-id }}
+        run: |
+          docker compose -f docker-compose.test.yml up -d --wait
+        env:
+          POCKET_ID_IMAGE: pocketid/pocket-id:${{ matrix.pocket-id }}
+          POCKET_ID_API_KEY: pulumi-test-api-key-0123456789
+
+      - name: Acceptance tests
+        run: go test ./tests/... -run TestAcceptance -count=1 -v
+        env:
+          POCKET_ID_BASE_URL: http://localhost:1411
+          POCKET_ID_API_KEY: pulumi-test-api-key-0123456789
+
+      - name: Dump Pocket-ID logs
+        if: always()
+        run: docker compose -f docker-compose.test.yml logs --no-color
+
+      - name: Tear down Pocket-ID
+        if: always()
+        run: docker compose -f docker-compose.test.yml down -v
