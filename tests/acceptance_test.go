@@ -88,9 +88,9 @@ func TestAcceptanceUserGroupLifecycle(t *testing.T) {
 	// Update
 	updated := "Acceptance Updated " + name
 	updateResp, err := prov.Update(p.UpdateRequest{
-		ID:         createResp.ID,
-		Urn:        urn("UserGroup"),
-		State:      createResp.Properties,
+		ID:    createResp.ID,
+		Urn:   urn("UserGroup"),
+		State: createResp.Properties,
 		Inputs: property.NewMap(map[string]property.Value{
 			"friendlyName": property.New(updated),
 			"name":         property.New(name),
