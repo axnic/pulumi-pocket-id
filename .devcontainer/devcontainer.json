@@ -1,0 +1,32 @@
+{
+  "name": "pulumi-pocket-id",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "dev",
+  "workspaceFolder": "/workspace",
+  "features": {
+    // Provisions go/pulumi/golangci-lint/commitlint/etc. via `mise install`
+    // against this repo's own mise config - see postCreateCommand.
+    "ghcr.io/devcontainers-extra/features/mise:1": {},
+    // Gives this container a `docker`/`docker compose` CLI wired to the
+    // *host's* Docker daemon (sibling containers, not nested) - lets
+    // `make dev-up` / `make test_e2e` work from in here too, against a
+    // separate disposable stack (see docker-compose.yml's comment).
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  "forwardPorts": [1411],
+  "portsAttributes": {
+    "1411": { "label": "Pocket-ID" }
+  },
+  "postCreateCommand": "bash .devcontainer/postCreate.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
+        "hverlin.mise-vscode"
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}
