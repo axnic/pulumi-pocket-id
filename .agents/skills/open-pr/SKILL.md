@@ -15,17 +15,15 @@ allowed-tools: Bash(git:*) Bash(gh:*) Bash(pnpm:*) Bash(mise:*)
 
 Before pushing anything, read these files to understand conventions:
 
-- `AGENTS.md` — architecture, key conventions
 - `CONTRIBUTING.md` — setup, tooling, test layout, commit format
-- `CHANGELOG.md` — recent changes; informs a good `## [Unreleased]` entry
 - `.commitlintrc.js` — enforced commit types and scopes
 
 Run the full check suite and confirm it is green:
 
 ```sh
-pnpm test
-mise run lint
-mise run build
+make provider
+golangci-lint run
+go test ./provider/... ./tests/...
 ```
 
 Never open a PR with a failing check suite. Fix the issue first.
@@ -39,7 +37,7 @@ Branch from `main`. Match the branch name to the conventional commit type:
 | Bug fix       | `fix/<short-description>`      |
 | New feature   | `feat/<short-description>`     |
 | Documentation | `docs/<short-description>`     |
-| Tooling/build | `chore/<short-description>`    |
+| Tooling/build | `build/<short-description>`    |
 | Refactor      | `refactor/<short-description>` |
 
 ## Commits
@@ -50,12 +48,13 @@ Every commit must follow the format enforced by `.commitlintrc.js`:
 <type>(<scope>): <Subject in sentence case>
 ```
 
-**Allowed scopes:** `sdk` · `ui` · `core` · `settings` · `docs` · `deps` · `tooling`
+**Allowed scopes:** `provider` · `sdk` · `examples` · `tests` · `docs` · `ci` · `deps` · `tooling`
 
-Every commit must include both a DCO sign-off and a cryptographic signature:
+Every commit must include a DCO sign-off (cryptographic signing is configured
+globally and applies automatically — see `.agents/skills/commit/SKILL.md`):
 
 ```sh
-git commit -s -S -m "feat(sdk): Add S.color() builder for hex color settings"
+git commit -s -m "feat(provider): Add support for custom claim conditions"
 ```
 
 ## Opening the PR
@@ -72,19 +71,19 @@ gh pr create \
 
 ## Filling the PR template
 
-The template has six sections. Fill each one as follows.
+The template (`.github/PULL_REQUEST_TEMPLATE.md`) has five sections plus a
+checklist. Fill each one as follows.
 
 ### Summary
 
 One sentence, present tense, mirroring the primary commit subject:
 
-> Add `S.color()` builder for hex color settings.
+> Add support for custom claim conditions.
 
 ### Why
 
 Explain the motivation — what gap, pain point, or bug triggered this change.
-Link the related issue: `Closes #<number>` (auto-closes on merge) or
-`Refs #<number>` for informational links.
+Link the related issue: `Closes #<number>` (auto-closes on merge) or "N/A".
 
 ### What changed
 
@@ -96,28 +95,28 @@ understand the approach without reading every diff line.
 Provide copy-pasteable commands:
 
 ```sh
-pnpm test
-mise run lint
-npx vitest run --reporter=verbose
+make provider
+make test
+make lint
 ```
 
-If the change touches the TUI panel, add manual steps:
-`/extensions:settings` → navigate to the affected setting → verify behaviour.
+If the change needs a live Pocket-ID instance, add:
+`docker compose -f docker-compose.test.yml up -d --wait` first.
 
 ### Impact
 
 - **No breaking changes** — for additions and internal fixes.
-- **Breaking change** — for any change to a public API, a storage key, or an
-  event name. Describe migration steps.
+- **Breaking change** — for any change to the provider's public schema.
+  Describe migration steps.
 
 ### Checklist — items AI agents often miss
 
-| Item                   | How to satisfy it                                         |
-| ---------------------- | --------------------------------------------------------- |
-| Tests added            | Add a colocated `.spec.ts` file or extend an existing one |
-| `sdk/index.ts` updated | Export new symbols; remove deleted ones                   |
-| `sdk/docs/` updated    | Update reference tables, hook docs, and counts            |
-| Commits signed off     | `git commit -s` on every commit                           |
+| Item                       | How to satisfy it                                          |
+| --------------------------- | ------------------------------------------------------------ |
+| Tests added                 | Extend or add a `*_test.go` alongside the changed code    |
+| Schema reflects the change  | Regenerate via `make generate_schema` if resources changed |
+| README updated              | If the change affects public provider behaviour           |
+| Commits signed off          | `git commit -s` on every commit                            |
 
 ## Responding to review feedback
 
@@ -132,10 +131,11 @@ git push --force-with-lease
 For larger review rounds, prefer a new commit (easier to diff):
 
 ```sh
-git commit -s -m "fix(sdk): Address review: rename field to colorValue"
+git commit -s -m "fix(provider): Address review: validate claim name length"
 ```
 
 ## CI
 
-The CI runs `pnpm test`, `mise run lint`, and `mise run build`. If any check is
-red, fix it in a new commit — do not skip hooks or force-merge.
+The CI runs commit-message linting, `golangci-lint`, `make provider`, and the
+unit/acceptance test suite. If any check is red, fix it in a new commit — do
+not skip hooks or force-merge.
