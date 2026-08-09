@@ -36,6 +36,11 @@ func Provider() p.Provider {
 		WithDescription("A Pulumi provider for Pocket-ID, a passkey-only OIDC provider.").
 		WithHomepage("https://github.com/pocket-id/pocket-id").
 		WithNamespace("pocketid").
+		// Lets `pulumi plugin install resource pocket-id <version>` and the
+		// engine's automatic resolution fetch the provider binary straight
+		// from this repo's GitHub Releases - no Pulumi Registry listing
+		// required for the provider binary itself to be usable.
+		WithPluginDownloadURL("github://api.github.com/axnic/pulumi-pocket-id").
 		WithResources(
 			infer.Resource(&OidcClient{}),
 			infer.Resource(&User{}),
