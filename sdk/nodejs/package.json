@@ -1,0 +1,30 @@
+{
+    "name": "@axnic/pulumi-pocket-id",
+    "version": "1.0.0-alpha.0+dev",
+    "keywords": [
+        "pocket-id",
+        "oidc",
+        "identity",
+        "passkey",
+        "self-hosted"
+    ],
+    "homepage": "https://github.com/axnic/pulumi-pocket-id",
+    "repository": "https://github.com/axnic/pulumi-pocket-id",
+    "license": "Apache-2.0",
+    "scripts": {
+        "build": "tsc"
+    },
+    "dependencies": {
+        "@pulumi/pulumi": "^3.142.0"
+    },
+    "devDependencies": {
+        "@types/node": "^18",
+        "typescript": "^4.3.5"
+    },
+    "pulumi": {
+        "resource": true,
+        "name": "pocket-id",
+        "version": "1.0.0-alpha.0+dev",
+        "server": "github://api.github.com/axnic/pulumi-pocket-id"
+    }
+}
