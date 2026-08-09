@@ -16,10 +16,10 @@ package provider
 
 // Config holds the provider-level configuration for the Pocket-ID provider.
 type Config struct {
-	// BaseUrl is the URL of the Pocket-ID server, e.g. "https://pocket-id.example.com".
-	BaseUrl string `pulumi:"baseUrl" json:"baseUrl"`
+	// BaseURL is the URL of the Pocket-ID server, e.g. "https://pocket-id.example.com".
+	BaseURL string `pulumi:"baseUrl" json:"baseUrl"`
 
-	// ApiKey is a Pocket-ID API key used to authenticate against the REST API.
+	// APIKey is a Pocket-ID API key used to authenticate against the REST API.
 	// It is sent with every request via the `X-API-Key` header.
-	ApiKey string `pulumi:"apiKey" provider:"secret" json:"apiKey"`
+	APIKey string `pulumi:"apiKey" provider:"secret" json:"apiKey"`
 }

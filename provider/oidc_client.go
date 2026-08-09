@@ -39,20 +39,20 @@ type OidcClientCredentials struct {
 
 // OidcClientArgs are the inputs for an OIDC client.
 type OidcClientArgs struct {
-	// ClientId optionally sets the OIDC client ID. If omitted, Pocket-ID generates one.
-	ClientId string `pulumi:"clientId,optional" json:"id,omitempty"`
+	// ClientID optionally sets the OIDC client ID. If omitted, Pocket-ID generates one.
+	ClientID string `pulumi:"clientId,optional" json:"id,omitempty"`
 	Name     string `pulumi:"name" json:"name"`
 
-	CallbackUrls                       []string               `pulumi:"callbackUrls,optional" json:"callbackURLs,omitempty"`
-	LogoutCallbackUrls                 []string               `pulumi:"logoutCallbackUrls,optional" json:"logoutCallbackURLs,omitempty"`
-	IsPublic                           bool                   `pulumi:"isPublic,optional" json:"isPublic,omitempty"`
-	PkceEnabled                        bool                   `pulumi:"pkceEnabled,optional" json:"pkceEnabled,omitempty"`
-	RequiresReauthentication           bool                   `pulumi:"requiresReauthentication,optional" json:"requiresReauthentication,omitempty"`
-	RequiresPushedAuthorizationRequests bool                   `pulumi:"requiresPushedAuthorizationRequests,optional" json:"requiresPushedAuthorizationRequests,omitempty"`
-	SkipConsent                        bool                   `pulumi:"skipConsent,optional" json:"skipConsent,omitempty"`
-	LaunchUrl                          *string                `pulumi:"launchUrl,optional" json:"launchURL,omitempty"`
-	IsGroupRestricted                  bool                   `pulumi:"isGroupRestricted,optional" json:"isGroupRestricted,omitempty"`
-	Credentials                        *OidcClientCredentials `pulumi:"credentials,optional" json:"credentials,omitempty"`
+	CallbackUrls                        []string               `pulumi:"callbackUrls,optional" json:"callbackURLs,omitempty"`             //nolint:lll
+	LogoutCallbackUrls                  []string               `pulumi:"logoutCallbackUrls,optional" json:"logoutCallbackURLs,omitempty"` //nolint:lll
+	IsPublic                            bool                   `pulumi:"isPublic,optional" json:"isPublic,omitempty"`
+	PkceEnabled                         bool                   `pulumi:"pkceEnabled,optional" json:"pkceEnabled,omitempty"`
+	RequiresReauthentication            bool                   `pulumi:"requiresReauthentication,optional" json:"requiresReauthentication,omitempty"`                       //nolint:lll
+	RequiresPushedAuthorizationRequests bool                   `pulumi:"requiresPushedAuthorizationRequests,optional" json:"requiresPushedAuthorizationRequests,omitempty"` //nolint:lll
+	SkipConsent                         bool                   `pulumi:"skipConsent,optional" json:"skipConsent,omitempty"`
+	LaunchURL                           *string                `pulumi:"launchUrl,optional" json:"launchURL,omitempty"`
+	IsGroupRestricted                   bool                   `pulumi:"isGroupRestricted,optional" json:"isGroupRestricted,omitempty"` //nolint:lll
+	Credentials                         *OidcClientCredentials `pulumi:"credentials,optional" json:"credentials,omitempty"`
 }
 
 // OidcClientState is persisted in Pulumi state.
@@ -65,37 +65,37 @@ type OidcClientState struct {
 
 // oidcClientResponse mirrors the OidcClientDto response (with embedded metadata).
 type oidcClientResponse struct {
-	Id                                 string                 `json:"id"`
-	Name                               string                 `json:"name"`
-	HasLogo                            bool                   `json:"hasLogo"`
-	HasDarkLogo                        bool                   `json:"hasDarkLogo"`
-	LaunchURL                          *string                `json:"launchURL"`
-	RequiresReauthentication           bool                   `json:"requiresReauthentication"`
-	CallbackURLs                       []string               `json:"callbackURLs"`
-	LogoutCallbackURLs                 []string               `json:"logoutCallbackURLs"`
-	IsPublic                           bool                   `json:"isPublic"`
-	PkceEnabled                        bool                   `json:"pkceEnabled"`
+	ID                                  string                 `json:"id"`
+	Name                                string                 `json:"name"`
+	HasLogo                             bool                   `json:"hasLogo"`
+	HasDarkLogo                         bool                   `json:"hasDarkLogo"`
+	LaunchURL                           *string                `json:"launchURL"`
+	RequiresReauthentication            bool                   `json:"requiresReauthentication"`
+	CallbackURLs                        []string               `json:"callbackURLs"`
+	LogoutCallbackURLs                  []string               `json:"logoutCallbackURLs"`
+	IsPublic                            bool                   `json:"isPublic"`
+	PkceEnabled                         bool                   `json:"pkceEnabled"`
 	RequiresPushedAuthorizationRequests bool                   `json:"requiresPushedAuthorizationRequests"`
-	SkipConsent                        bool                   `json:"skipConsent"`
-	Credentials                        *OidcClientCredentials `json:"credentials"`
-	IsGroupRestricted                  bool                   `json:"isGroupRestricted"`
-	PkceSupported                      bool                   `json:"pkceSupported,omitempty"`
+	SkipConsent                         bool                   `json:"skipConsent"`
+	Credentials                         *OidcClientCredentials `json:"credentials"`
+	IsGroupRestricted                   bool                   `json:"isGroupRestricted"`
+	PkceSupported                       bool                   `json:"pkceSupported,omitempty"`
 }
 
 func (resp oidcClientResponse) toState() OidcClientState {
 	return OidcClientState{
 		OidcClientArgs: OidcClientArgs{
-			Name:                               resp.Name,
-			CallbackUrls:                       resp.CallbackURLs,
-			LogoutCallbackUrls:                 resp.LogoutCallbackURLs,
-			IsPublic:                           resp.IsPublic,
-			PkceEnabled:                        resp.PkceEnabled,
-			RequiresReauthentication:           resp.RequiresReauthentication,
+			Name:                                resp.Name,
+			CallbackUrls:                        resp.CallbackURLs,
+			LogoutCallbackUrls:                  resp.LogoutCallbackURLs,
+			IsPublic:                            resp.IsPublic,
+			PkceEnabled:                         resp.PkceEnabled,
+			RequiresReauthentication:            resp.RequiresReauthentication,
 			RequiresPushedAuthorizationRequests: resp.RequiresPushedAuthorizationRequests,
-			SkipConsent:                        resp.SkipConsent,
-			LaunchUrl:                          resp.LaunchURL,
-			IsGroupRestricted:                  resp.IsGroupRestricted,
-			Credentials:                        resp.Credentials,
+			SkipConsent:                         resp.SkipConsent,
+			LaunchURL:                           resp.LaunchURL,
+			IsGroupRestricted:                   resp.IsGroupRestricted,
+			Credentials:                         resp.Credentials,
 		},
 		HasLogo:       resp.HasLogo,
 		HasDarkLogo:   resp.HasDarkLogo,
@@ -109,7 +109,7 @@ func (*OidcClient) Create(
 	req infer.CreateRequest[OidcClientArgs],
 ) (infer.CreateResponse[OidcClientState], error) {
 	if req.DryRun {
-		id := req.Inputs.ClientId
+		id := req.Inputs.ClientID
 		if id == "" {
 			id = req.Name
 		}
@@ -125,7 +125,7 @@ func (*OidcClient) Create(
 		return infer.CreateResponse[OidcClientState]{}, err
 	}
 	state := resp.toState()
-	return infer.CreateResponse[OidcClientState]{ID: resp.Id, Output: state}, nil
+	return infer.CreateResponse[OidcClientState]{ID: resp.ID, Output: state}, nil
 }
 
 // Read fetches the current state of an OIDC client.
@@ -139,7 +139,9 @@ func (*OidcClient) Read(
 		return infer.ReadResponse[OidcClientArgs, OidcClientState]{}, err
 	}
 	state := resp.toState()
-	return infer.ReadResponse[OidcClientArgs, OidcClientState]{ID: resp.Id, Inputs: state.OidcClientArgs, State: state}, nil
+	return infer.ReadResponse[OidcClientArgs, OidcClientState]{
+		ID: resp.ID, Inputs: state.OidcClientArgs, State: state,
+	}, nil
 }
 
 // Update modifies an existing OIDC client.
