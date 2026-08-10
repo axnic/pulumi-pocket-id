@@ -32,15 +32,42 @@ const Name string = "pocket-id"
 // Provider creates a new instance of the Pocket-ID provider.
 func Provider() p.Provider {
 	prov, err := infer.NewProviderBuilder().
-		WithDisplayName("pocket-id").
+		WithDisplayName("pulumi-pocket-id").
 		WithDescription("A Pulumi provider for Pocket-ID, a passkey-only OIDC provider.").
-		WithHomepage("https://github.com/pocket-id/pocket-id").
-		WithNamespace("pocketid").
+		WithHomepage("https://github.com/axnic/pulumi-pocket-id").
+		WithRepository("https://github.com/axnic/pulumi-pocket-id").
+		WithPublisher("axnic").
+		WithLicense("Apache-2.0").
+		WithKeywords("pocket-id", "oidc", "identity", "passkey", "self-hosted").
+		WithNamespace("axnic").
+		WithGoImportPath("github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id").
 		// Lets `pulumi plugin install resource pocket-id <version>` and the
 		// engine's automatic resolution fetch the provider binary straight
 		// from this repo's GitHub Releases - no Pulumi Registry listing
 		// required for the provider binary itself to be usable.
 		WithPluginDownloadURL("github://api.github.com/axnic/pulumi-pocket-id").
+		WithLanguageMap(map[string]any{
+			"nodejs": map[string]any{
+				"packageName":          "@axnic/pulumi-pocket-id",
+				"respectSchemaVersion": true,
+			},
+			"python": map[string]any{
+				"packageName":          "pulumi_pocket_id",
+				"respectSchemaVersion": true,
+				"pyproject": map[string]any{
+					"enabled": true,
+				},
+			},
+			"csharp": map[string]any{
+				"rootNamespace":        "Axnic.Pulumi",
+				"respectSchemaVersion": true,
+			},
+			"go": map[string]any{
+				"generateResourceContainerTypes": true,
+				"importBasePath":                 "github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id",
+				"respectSchemaVersion":           true,
+			},
+		}).
 		WithResources(
 			infer.Resource(&OidcClient{}),
 			infer.Resource(&User{}),

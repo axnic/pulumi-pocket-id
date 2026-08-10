@@ -34,7 +34,7 @@ type UserArgs struct {
 	IsAdmin       bool     `pulumi:"isAdmin,optional" json:"isAdmin,omitempty"`
 	Locale        *string  `pulumi:"locale,optional" json:"locale,omitempty"`
 	Disabled      bool     `pulumi:"disabled,optional" json:"disabled,omitempty"`
-	UserGroupIds  []string `pulumi:"userGroupIds,optional" json:"userGroupIds,omitempty"`
+	UserGroupIDs  []string `pulumi:"userGroupIds,optional" json:"userGroupIds,omitempty"`
 }
 
 // UserState is persisted in Pulumi state.
@@ -44,25 +44,25 @@ type UserState struct {
 
 // userResponse mirrors the UserDto response.
 type userResponse struct {
-	Id            string `json:"id"`
-	Username      string `json:"username"`
+	ID            string  `json:"id"`
+	Username      string  `json:"username"`
 	Email         *string `json:"email"`
-	EmailVerified bool   `json:"emailVerified"`
-	FirstName     string `json:"firstName"`
+	EmailVerified bool    `json:"emailVerified"`
+	FirstName     string  `json:"firstName"`
 	LastName      *string `json:"lastName"`
-	DisplayName   string `json:"displayName"`
-	IsAdmin       bool   `json:"isAdmin"`
+	DisplayName   string  `json:"displayName"`
+	IsAdmin       bool    `json:"isAdmin"`
 	Locale        *string `json:"locale"`
-	Disabled      bool   `json:"disabled"`
+	Disabled      bool    `json:"disabled"`
 	UserGroups    []struct {
-		Id string `json:"id"`
+		ID string `json:"id"`
 	} `json:"userGroups"`
 }
 
 func (resp userResponse) toState() UserState {
-	groupIds := make([]string, 0, len(resp.UserGroups))
+	groupIDs := make([]string, 0, len(resp.UserGroups))
 	for _, g := range resp.UserGroups {
-		groupIds = append(groupIds, g.Id)
+		groupIDs = append(groupIDs, g.ID)
 	}
 	return UserState{
 		UserArgs: UserArgs{
@@ -75,7 +75,7 @@ func (resp userResponse) toState() UserState {
 			IsAdmin:       resp.IsAdmin,
 			Locale:        resp.Locale,
 			Disabled:      resp.Disabled,
-			UserGroupIds:  groupIds,
+			UserGroupIDs:  groupIDs,
 		},
 	}
 }
@@ -98,7 +98,7 @@ func (*User) Create(
 		return infer.CreateResponse[UserState]{}, err
 	}
 	state := resp.toState()
-	return infer.CreateResponse[UserState]{ID: resp.Id, Output: state}, nil
+	return infer.CreateResponse[UserState]{ID: resp.ID, Output: state}, nil
 }
 
 // Read fetches the current state of a user.
@@ -112,7 +112,7 @@ func (*User) Read(
 		return infer.ReadResponse[UserArgs, UserState]{}, err
 	}
 	state := resp.toState()
-	return infer.ReadResponse[UserArgs, UserState]{ID: resp.Id, Inputs: state.UserArgs, State: state}, nil
+	return infer.ReadResponse[UserArgs, UserState]{ID: resp.ID, Inputs: state.UserArgs, State: state}, nil
 }
 
 // Update modifies an existing user.

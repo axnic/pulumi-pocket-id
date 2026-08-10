@@ -61,18 +61,12 @@ $(SCHEMA_FILE): provider
 # does not require the ability to build all SDKs.
 #
 # To build the SDKs, use `make build_sdks`
-#
-# Required by CI (weekly-pulumi-update)
-codegen: $(SCHEMA_FILE) sdk/dotnet sdk/go sdk/nodejs sdk/python sdk/java
+codegen: $(SCHEMA_FILE) sdk/dotnet sdk/go sdk/nodejs sdk/python
 
 .PHONY: sdk/%
 sdk/%: $(SCHEMA_FILE)
 	rm -rf $@
 	$(PULUMI) package gen-sdk --language $* $(SCHEMA_FILE) --version "${VERSION_GENERIC}"
-
-sdk/java: $(SCHEMA_FILE)
-	rm -rf $@
-	$(PULUMI) package gen-sdk --language java $(SCHEMA_FILE)
 
 sdk/python: $(SCHEMA_FILE)
 	rm -rf $@
@@ -89,7 +83,7 @@ sdk/go: ${SCHEMA_FILE}
 	$(PULUMI) package gen-sdk --language go ${SCHEMA_FILE} --version "${VERSION_GENERIC}"
 	cp go.mod ${PACKDIR}/go/pulumi-${PACK}/go.mod
 	cd ${PACKDIR}/go/pulumi-${PACK} && \
-		go mod edit -module=github.com/pulumi/pulumi-${PACK}/${PACKDIR}/go/pulumi-${PACK} && \
+		go mod edit -module=${PROJECT}/${PACKDIR}/go/pulumi-${PACK} && \
 		go mod tidy
 
 .PHONY: provider
@@ -127,36 +121,22 @@ python_sdk: sdk/python
 		cd ./bin && \
 		../venv/bin/python -m build .
 
-java_sdk:: PACKAGE_VERSION := $(VERSION_GENERIC)
-java_sdk:: sdk/java
-	cd sdk/java/ && \
-		gradle --console=plain build
-
 .PHONY: build
 build:: provider build_sdks
 
 .PHONY: build_sdks
-build_sdks: dotnet_sdk go_sdk nodejs_sdk python_sdk java_sdk
+build_sdks: dotnet_sdk go_sdk nodejs_sdk python_sdk
 
 # Required for the codegen action that runs in pulumi/pulumi
 only_build:: build
 
 lint:
-	golangci-lint --path-prefix provider --config .golangci.yml run --fix
+	golangci-lint --path-prefix provider --config .golangci.yml run --fix ./provider/...
 
 
 install:: install_nodejs_sdk install_dotnet_sdk
 	cp $(WORKING_DIR)/bin/${PROVIDER} ${GOPATH}/bin
 
-
-GO_TEST := go test -v -count=1 -cover -timeout 2h -parallel ${TESTPARALLELISM}
-
-test_all:: test
-	cd provider/pkg && $(GO_TEST) ./...
-	cd tests/sdk/nodejs && $(GO_TEST) ./...
-	cd tests/sdk/python && $(GO_TEST) ./...
-	cd tests/sdk/dotnet && $(GO_TEST) ./...
-	cd tests/sdk/go && $(GO_TEST) ./...
 
 install_dotnet_sdk::
 	rm -rf $(WORKING_DIR)/nuget/$(NUGET_PKG_NAME).*.nupkg
@@ -169,9 +149,6 @@ install_python_sdk::
 install_go_sdk::
 	#target intentionally blank
 
-install_java_sdk::
-	#target intentionally blank
-
 install_nodejs_sdk::
 	-yarn unlink --cwd $(WORKING_DIR)/sdk/nodejs/bin
 	yarn link --cwd $(WORKING_DIR)/sdk/nodejs/bin
@@ -179,44 +156,34 @@ install_nodejs_sdk::
 test:: test_provider
 	cd examples && go test -v -tags=all -timeout 2h
 
-# Set these variables to enable signing of the windows binary with Azure Trusted Signing.
-AZURE_SIGNING_CLIENT_ID ?=
-AZURE_SIGNING_CLIENT_SECRET ?=
-AZURE_SIGNING_TENANT_ID ?=
-AZURE_SIGNING_ACCOUNT_ENDPOINT ?=
-AZURE_SIGNING_ACCOUNT_NAME ?=
-AZURE_SIGNING_CERT_PROFILE_NAME ?=
-SKIP_SIGNING ?=
+# test_e2e starts a real, disposable Pocket-ID instance via Docker and runs
+# the acceptance suite against it. Requires Docker; see
+# docker-compose.test.yml. Pin a Pocket-ID version with POCKET_ID_IMAGE, e.g.
+# `POCKET_ID_IMAGE=pocketid/pocket-id:v2.9.0 make test_e2e` - STATIC_API_KEY
+# support requires Pocket-ID >= v2.3.0.
+.PHONY: test_e2e
+test_e2e:
+	docker compose -f docker-compose.test.yml up --detach --wait
+	POCKET_ID_BASE_URL=http://localhost:1411 POCKET_ID_API_KEY=pulumi-test-api-key-0123456789 \
+		go test ./tests/... -run TestAcceptance -count=1 -v; \
+		status=$$?; \
+		docker compose -f docker-compose.test.yml down --volumes; \
+		exit $$status
 
-bin/jsign-7.4.jar:
-	mkdir -p bin
-	wget https://github.com/ebourg/jsign/releases/download/7.4/jsign-7.4.jar --output-document=bin/jsign-7.4.jar
+# dev-up/dev-down start and stop the same Pocket-ID instance for interactive
+# local development (no automated teardown - it's left running for you to
+# point `pulumi up`, curl, or the examples at). See CONTRIBUTING.md's Setting
+# up your development environment section.
+.PHONY: dev-up
+dev-up:
+	docker compose -f docker-compose.test.yml up --detach --wait
+	@echo "Pocket-ID:          http://localhost:1411"
+	@echo "export POCKET_ID_BASE_URL=http://localhost:1411"
+	@echo "export POCKET_ID_API_KEY=pulumi-test-api-key-0123456789"
 
-sign-goreleaser-exe-amd64: GORELEASER_ARCH := amd64_v1
-sign-goreleaser-exe-arm64: GORELEASER_ARCH := arm64
-
-# Set the shell to bash to allow for the use of bash syntax.
-sign-goreleaser-exe-%: SHELL:=/bin/bash
-sign-goreleaser-exe-%: bin/jsign-7.4.jar
-	SKIP_SIGNING=${SKIP_SIGNING} \
-	AZURE_SIGNING_CLIENT_ID=${AZURE_SIGNING_CLIENT_ID} \
-	AZURE_SIGNING_CLIENT_SECRET=${AZURE_SIGNING_CLIENT_SECRET} \
-	AZURE_SIGNING_TENANT_ID=${AZURE_SIGNING_TENANT_ID} \
-	AZURE_SIGNING_ACCOUNT_ENDPOINT=${AZURE_SIGNING_ACCOUNT_ENDPOINT} \
-	AZURE_SIGNING_ACCOUNT_NAME=${AZURE_SIGNING_ACCOUNT_NAME} \
-	AZURE_SIGNING_CERT_PROFILE_NAME=${AZURE_SIGNING_CERT_PROFILE_NAME} \
-	GORELEASER_ARCH=${GORELEASER_ARCH} \
-	CI=${CI} \
-		scripts/sign-windows-binary.sh
-
-# To make an immediately observable change to .ci-mgmt.yaml:
-#
-# - Edit .ci-mgmt.yaml
-# - Run make ci-mgmt to apply the change locally.
-#
-ci-mgmt: .ci-mgmt.yaml
-	go run github.com/pulumi/ci-mgmt/provider-ci@master generate
-.PHONY: ci-mgmt
+.PHONY: dev-down
+dev-down:
+	docker compose -f docker-compose.test.yml down --volumes
 
 .PHONY:local_generate
 local_generate: # Required by CI
@@ -227,10 +194,6 @@ generate_schema: ${SCHEMA_PATH} # Required by CI
 .PHONY: build_go install_go_sdk
 generate_go: sdk/go # Required by CI
 build_go: # Required by CI
-
-.PHONY: build_java install_java_sdk
-generate_java: sdk/java # Required by CI
-build_java: java_sdk # Required by CI
 
 .PHONY: build_python install_python_sdk
 generate_python: sdk/python # Required by CI

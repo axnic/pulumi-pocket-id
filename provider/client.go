@@ -39,8 +39,8 @@ type Client struct {
 func clientFromContext(ctx context.Context) *Client {
 	cfg := infer.GetConfig[Config](ctx)
 	return &Client{
-		baseURL: strings.TrimRight(cfg.BaseUrl, "/"),
-		apiKey:  cfg.ApiKey,
+		baseURL: strings.TrimRight(cfg.BaseURL, "/"),
+		apiKey:  cfg.APIKey,
 	}
 }
 
@@ -90,9 +90,9 @@ func (c *Client) do(ctx context.Context, method, path string, body, out any) err
 }
 
 func truncateErr(s string) string {
-	const max = 500
-	if len(s) <= max {
+	const maxLen = 500
+	if len(s) <= maxLen {
 		return s
 	}
-	return s[:max] + "..."
+	return s[:maxLen] + "..."
 }

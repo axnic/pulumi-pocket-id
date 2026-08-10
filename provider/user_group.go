@@ -36,7 +36,7 @@ type UserGroupState struct {
 
 // userGroupResponse mirrors the UserGroupDto response.
 type userGroupResponse struct {
-	Id           string `json:"id"`
+	ID           string `json:"id"`
 	FriendlyName string `json:"friendlyName"`
 	Name         string `json:"name"`
 }
@@ -67,7 +67,7 @@ func (*UserGroup) Create(
 	if err := client.do(ctx, "POST", "/api/user-groups", req.Inputs, &resp); err != nil {
 		return infer.CreateResponse[UserGroupState]{}, err
 	}
-	return infer.CreateResponse[UserGroupState]{ID: resp.Id, Output: resp.toState()}, nil
+	return infer.CreateResponse[UserGroupState]{ID: resp.ID, Output: resp.toState()}, nil
 }
 
 // Read fetches the current state of a user group.
@@ -81,7 +81,7 @@ func (*UserGroup) Read(
 		return infer.ReadResponse[UserGroupArgs, UserGroupState]{}, err
 	}
 	state := resp.toState()
-	return infer.ReadResponse[UserGroupArgs, UserGroupState]{ID: resp.Id, Inputs: state.UserGroupArgs, State: state}, nil
+	return infer.ReadResponse[UserGroupArgs, UserGroupState]{ID: resp.ID, Inputs: state.UserGroupArgs, State: state}, nil
 }
 
 // Update modifies an existing user group.

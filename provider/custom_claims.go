@@ -44,8 +44,8 @@ type CustomClaims struct{}
 type CustomClaimsArgs struct {
 	// OwnerType is either "user" or "user-group".
 	OwnerType string `pulumi:"ownerType" json:"ownerType"`
-	// OwnerId is the ID of the user or user group that owns the claims.
-	OwnerId string `pulumi:"ownerId" json:"ownerId"`
+	// OwnerID is the ID of the user or user group that owns the claims.
+	OwnerID string `pulumi:"ownerId" json:"ownerId"`
 	// Claims is the full list of custom claims for the owner.
 	Claims []CustomClaim `pulumi:"claims,optional" json:"claims,omitempty"`
 }
@@ -72,7 +72,7 @@ func (*CustomClaims) Create(
 	if err := validateOwnerType(req.Inputs.OwnerType); err != nil {
 		return infer.CreateResponse[CustomClaimsState]{}, err
 	}
-	id := claimsID(req.Inputs.OwnerType, req.Inputs.OwnerId)
+	id := claimsID(req.Inputs.OwnerType, req.Inputs.OwnerID)
 	if req.DryRun {
 		return infer.CreateResponse[CustomClaimsState]{
 			ID:     id,
@@ -80,7 +80,7 @@ func (*CustomClaims) Create(
 		}, nil
 	}
 	client := clientFromContext(ctx)
-	if err := putClaims(ctx, client, req.Inputs.OwnerType, req.Inputs.OwnerId, req.Inputs.Claims); err != nil {
+	if err := putClaims(ctx, client, req.Inputs.OwnerType, req.Inputs.OwnerID, req.Inputs.Claims); err != nil {
 		return infer.CreateResponse[CustomClaimsState]{}, err
 	}
 	return infer.CreateResponse[CustomClaimsState]{ID: id, Output: CustomClaimsState{CustomClaimsArgs: req.Inputs}}, nil
@@ -92,14 +92,14 @@ func (*CustomClaims) Read(
 	req infer.ReadRequest[CustomClaimsArgs, CustomClaimsState],
 ) (infer.ReadResponse[CustomClaimsArgs, CustomClaimsState], error) {
 	client := clientFromContext(ctx)
-	claims, err := getClaims(ctx, client, req.State.OwnerType, req.State.OwnerId)
+	claims, err := getClaims(ctx, client, req.State.OwnerType, req.State.OwnerID)
 	if err != nil {
 		return infer.ReadResponse[CustomClaimsArgs, CustomClaimsState]{}, err
 	}
 	inputs := req.State.CustomClaimsArgs
 	inputs.Claims = claims
 	return infer.ReadResponse[CustomClaimsArgs, CustomClaimsState]{
-		ID:     claimsID(inputs.OwnerType, inputs.OwnerId),
+		ID:     claimsID(inputs.OwnerType, inputs.OwnerID),
 		Inputs: inputs,
 		State:  CustomClaimsState{CustomClaimsArgs: inputs},
 	}, nil
@@ -114,7 +114,7 @@ func (*CustomClaims) Update(
 		return infer.UpdateResponse[CustomClaimsState]{}, err
 	}
 	client := clientFromContext(ctx)
-	if err := putClaims(ctx, client, req.Inputs.OwnerType, req.Inputs.OwnerId, req.Inputs.Claims); err != nil {
+	if err := putClaims(ctx, client, req.Inputs.OwnerType, req.Inputs.OwnerID, req.Inputs.Claims); err != nil {
 		return infer.UpdateResponse[CustomClaimsState]{}, err
 	}
 	return infer.UpdateResponse[CustomClaimsState]{Output: CustomClaimsState{CustomClaimsArgs: req.Inputs}}, nil
@@ -126,7 +126,7 @@ func (*CustomClaims) Delete(
 	req infer.DeleteRequest[CustomClaimsState],
 ) (infer.DeleteResponse, error) {
 	client := clientFromContext(ctx)
-	if err := putClaims(ctx, client, req.State.OwnerType, req.State.OwnerId, nil); err != nil {
+	if err := putClaims(ctx, client, req.State.OwnerType, req.State.OwnerID, nil); err != nil {
 		return infer.DeleteResponse{}, err
 	}
 	return infer.DeleteResponse{}, nil
@@ -137,12 +137,12 @@ func (*CustomClaims) Diff(
 	_ context.Context,
 	req infer.DiffRequest[CustomClaimsArgs, CustomClaimsState],
 ) (infer.DiffResponse, error) {
-	if req.Inputs.OwnerType != req.State.OwnerType || req.Inputs.OwnerId != req.State.OwnerId {
+	if req.Inputs.OwnerType != req.State.OwnerType || req.Inputs.OwnerID != req.State.OwnerID {
 		diff := map[string]p.PropertyDiff{}
 		if req.Inputs.OwnerType != req.State.OwnerType {
 			diff["ownerType"] = p.PropertyDiff{Kind: p.UpdateReplace, InputDiff: true}
 		}
-		if req.Inputs.OwnerId != req.State.OwnerId {
+		if req.Inputs.OwnerID != req.State.OwnerID {
 			diff["ownerId"] = p.PropertyDiff{Kind: p.UpdateReplace, InputDiff: true}
 		}
 		return p.DiffResponse{HasChanges: true, DeleteBeforeReplace: true, DetailedDiff: diff}, nil
@@ -151,33 +151,35 @@ func (*CustomClaims) Diff(
 	return p.DiffResponse{HasChanges: changed}, nil
 }
 
-func claimsID(ownerType, ownerId string) string {
-	return ownerType + "/" + ownerId
+func claimsID(ownerType, ownerID string) string {
+	return ownerType + "/" + ownerID
 }
 
-func ownerPath(ownerType, ownerId string) string {
-	return "/api/custom-claims/" + ownerType + "/" + ownerId
+func ownerPath(ownerType, ownerID string) string {
+	return "/api/custom-claims/" + ownerType + "/" + ownerID
 }
 
-func putClaims(ctx context.Context, c *Client, ownerType, ownerId string, claims []CustomClaim) error {
+func putClaims(ctx context.Context, c *Client, ownerType, ownerID string, claims []CustomClaim) error {
 	if claims == nil {
 		claims = []CustomClaim{}
 	}
-	return c.do(ctx, "PUT", ownerPath(ownerType, ownerId), claims, nil)
+	return c.do(ctx, "PUT", ownerPath(ownerType, ownerID), claims, nil)
 }
 
-func getClaims(ctx context.Context, c *Client, ownerType, ownerId string) ([]CustomClaim, error) {
+func getClaims(ctx context.Context, c *Client, ownerType, ownerID string) ([]CustomClaim, error) {
 	var resp struct {
 		CustomClaims []CustomClaim `json:"customClaims"`
 	}
 	var path string
 	switch ownerType {
 	case customClaimsOwnerUser:
-		path = "/api/users/" + ownerId
+		path = "/api/users/" + ownerID
 	case customClaimsOwnerUserGroup:
-		path = "/api/user-groups/" + ownerId
+		path = "/api/user-groups/" + ownerID
 	default:
-		return nil, fmt.Errorf("ownerType must be %q or %q, got %q", customClaimsOwnerUser, customClaimsOwnerUserGroup, ownerType)
+		return nil, fmt.Errorf(
+			"ownerType must be %q or %q, got %q", customClaimsOwnerUser, customClaimsOwnerUserGroup, ownerType,
+		)
 	}
 	if err := c.do(ctx, "GET", path, nil, &resp); err != nil {
 		return nil, err

@@ -1,0 +1,38 @@
+name: pocket-id-example-yaml
+runtime: yaml
+
+resources:
+  myGroup:
+    type: pocket-id:index:UserGroup
+    properties:
+      name: my-app-group
+      friendlyName: My Application Group
+  myUser:
+    type: pocket-id:index:User
+    properties:
+      username: my-app-user
+      # Pocket-ID's API requires email even though the provider marks it
+      # optional - see README.md's "Known limitations" section.
+      email: my-app-user@example.com
+      displayName: My Application User
+      userGroupIds:
+        - ${myGroup.id}
+  myClient:
+    type: pocket-id:index:OidcClient
+    properties:
+      name: My Application
+      callbackUrls:
+        - https://app.example.com/callback
+  myClaims:
+    type: pocket-id:index:CustomClaims
+    properties:
+      ownerType: user-group
+      ownerId: ${myGroup.id}
+      claims:
+        - key: department
+          value: engineering
+
+outputs:
+  userGroupId: ${myGroup.id}
+  username: ${myUser.username}
+  clientId: ${myClient.clientId}

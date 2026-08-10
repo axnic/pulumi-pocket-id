@@ -107,9 +107,9 @@ func TestOidcClientDryRun(t *testing.T) {
 
 	// A dry-run create must not contact the server.
 	createResp, err := prov.Create(p.CreateRequest{
-		Urn:    urn("OidcClient"),
+		Urn:        urn("OidcClient"),
 		Properties: property.NewMap(map[string]property.Value{"name": property.New("Preview")}),
-		DryRun: true,
+		DryRun:     true,
 	})
 	require.NoError(t, err)
 	assert.NotEmpty(t, createResp.ID)
