@@ -1,0 +1,22 @@
+[project]
+  name = "pulumi_pocket_id"
+  description = "A Pulumi provider for Pocket-ID, a passkey-only OIDC provider."
+  dependencies = ["parver>=0.2.1", "pulumi>=3.165.0,<4.0.0", "semver>=2.8.1", "typing-extensions>=4.11,<5; python_version < \"3.11\""]
+  keywords = ["pocket-id", "oidc", "identity", "passkey", "self-hosted"]
+  readme = "README.md"
+  requires-python = ">=3.9"
+  version = "1.0.0a0+dev"
+  [project.license]
+    text = "Apache-2.0"
+  [project.urls]
+    Homepage = "https://github.com/axnic/pulumi-pocket-id"
+    Repository = "https://github.com/axnic/pulumi-pocket-id"
+
+[build-system]
+  requires = ["setuptools>=61.0"]
+  build-backend = "setuptools.build_meta"
+
+[tool]
+  [tool.setuptools]
+    [tool.setuptools.package-data]
+      pulumi_pocket_id = ["py.typed", "pulumi-plugin.json"]
