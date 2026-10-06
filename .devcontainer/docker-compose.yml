@@ -1,0 +1,51 @@
+# Devcontainer-only compose stack: a "dev" service (this repo, mounted, with
+# Go/Pulumi/etc provisioned via the mise devcontainer feature - see
+# devcontainer.json) sharing its network namespace with its own always-on
+# Pocket-ID instance (network_mode: service:pocket-id below) - so
+# http://localhost:1411 already works, no `make dev-up` needed.
+#
+# This is separate from the root docker-compose.test.yml (used by
+# `make dev-up` / `make test_e2e`, which need a *disposable* instance and
+# work equally well outside a devcontainer): this one is never torn down
+# between sessions and publishes no host ports of its own - network_mode:
+# service:pocket-id is what makes localhost:1411 resolve here, not a
+# `ports:` mapping. Running `make dev-up` / `make test_e2e` from inside the
+# devcontainer still works too, via the docker-outside-of-docker feature -
+# that spins up a completely separate, disposable stack against the host's
+# real Docker daemon, so there's no port conflict with this always-on one.
+services:
+  pocket-id:
+    image: ${POCKET_ID_IMAGE:-pocketid/pocket-id:v2}
+    restart: "no"
+    environment:
+      APP_URL: http://localhost:1411
+      ENCRYPTION_KEY: 1YaI9eZq0QJgkvpfwkU63QjodNYQoxwthcKHv50R3Ro=
+      STATIC_API_KEY: pulumi-dev-api-key-0123456789
+      DB_PROVIDER: sqlite
+      DISABLE_RATE_LIMITING: "true"
+      TRUST_PROXY: "true"
+      AUDIT_LOG_RETENTION_DAYS: "1"
+    volumes:
+      - pocket-id-data:/app/data
+    healthcheck:
+      test: ["CMD", "/app/pocket-id", "healthcheck"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+      start_period: 5s
+
+  dev:
+    image: mcr.microsoft.com/devcontainers/base:bookworm
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    network_mode: service:pocket-id
+    depends_on:
+      pocket-id:
+        condition: service_healthy
+    environment:
+      POCKET_ID_BASE_URL: http://localhost:1411
+      POCKET_ID_API_KEY: pulumi-dev-api-key-0123456789
+
+volumes:
+  pocket-id-data:

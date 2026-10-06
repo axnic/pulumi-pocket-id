@@ -1,1 +1,1 @@
-An example built with pulumi-go-provider.
+A Pulumi provider for Pocket-ID, a passkey-only OIDC provider.

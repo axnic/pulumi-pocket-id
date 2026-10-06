@@ -5,47 +5,149 @@ import * as pulumi from "@pulumi/pulumi";
 import * as utilities from "./utilities";
 
 // Export members:
+export { ApiArgs } from "./api";
+export type Api = import("./api").Api;
+export const Api: typeof import("./api").Api = null as any;
+utilities.lazyLoad(exports, ["Api"], () => require("./api"));
+
+export { ApiClientGrantArgs } from "./apiClientGrant";
+export type ApiClientGrant = import("./apiClientGrant").ApiClientGrant;
+export const ApiClientGrant: typeof import("./apiClientGrant").ApiClientGrant = null as any;
+utilities.lazyLoad(exports, ["ApiClientGrant"], () => require("./apiClientGrant"));
+
+export { ApplicationConfigurationArgs } from "./applicationConfiguration";
+export type ApplicationConfiguration = import("./applicationConfiguration").ApplicationConfiguration;
+export const ApplicationConfiguration: typeof import("./applicationConfiguration").ApplicationConfiguration = null as any;
+utilities.lazyLoad(exports, ["ApplicationConfiguration"], () => require("./applicationConfiguration"));
+
+export { ApplicationImageArgs } from "./applicationImage";
+export type ApplicationImage = import("./applicationImage").ApplicationImage;
+export const ApplicationImage: typeof import("./applicationImage").ApplicationImage = null as any;
+utilities.lazyLoad(exports, ["ApplicationImage"], () => require("./applicationImage"));
+
+export { GetOidcClientArgs, GetOidcClientResult, GetOidcClientOutputArgs } from "./getOidcClient";
+export const getOidcClient: typeof import("./getOidcClient").getOidcClient = null as any;
+export const getOidcClientOutput: typeof import("./getOidcClient").getOidcClientOutput = null as any;
+utilities.lazyLoad(exports, ["getOidcClient","getOidcClientOutput"], () => require("./getOidcClient"));
+
+export { GetOpenIdConfigurationArgs, GetOpenIdConfigurationResult } from "./getOpenIdConfiguration";
+export const getOpenIdConfiguration: typeof import("./getOpenIdConfiguration").getOpenIdConfiguration = null as any;
+export const getOpenIdConfigurationOutput: typeof import("./getOpenIdConfiguration").getOpenIdConfigurationOutput = null as any;
+utilities.lazyLoad(exports, ["getOpenIdConfiguration","getOpenIdConfigurationOutput"], () => require("./getOpenIdConfiguration"));
+
+export { GetUserArgs, GetUserResult, GetUserOutputArgs } from "./getUser";
+export const getUser: typeof import("./getUser").getUser = null as any;
+export const getUserOutput: typeof import("./getUser").getUserOutput = null as any;
+utilities.lazyLoad(exports, ["getUser","getUserOutput"], () => require("./getUser"));
+
+export { GetUserGroupArgs, GetUserGroupResult, GetUserGroupOutputArgs } from "./getUserGroup";
+export const getUserGroup: typeof import("./getUserGroup").getUserGroup = null as any;
+export const getUserGroupOutput: typeof import("./getUserGroup").getUserGroupOutput = null as any;
+utilities.lazyLoad(exports, ["getUserGroup","getUserGroupOutput"], () => require("./getUserGroup"));
+
+export { OidcClientArgs } from "./oidcClient";
+export type OidcClient = import("./oidcClient").OidcClient;
+export const OidcClient: typeof import("./oidcClient").OidcClient = null as any;
+utilities.lazyLoad(exports, ["OidcClient"], () => require("./oidcClient"));
+
+export { OidcClientSecretArgs } from "./oidcClientSecret";
+export type OidcClientSecret = import("./oidcClientSecret").OidcClientSecret;
+export const OidcClientSecret: typeof import("./oidcClientSecret").OidcClientSecret = null as any;
+utilities.lazyLoad(exports, ["OidcClientSecret"], () => require("./oidcClientSecret"));
+
 export { ProviderArgs } from "./provider";
 export type Provider = import("./provider").Provider;
 export const Provider: typeof import("./provider").Provider = null as any;
 utilities.lazyLoad(exports, ["Provider"], () => require("./provider"));
 
-export { RandomArgs } from "./random";
-export type Random = import("./random").Random;
-export const Random: typeof import("./random").Random = null as any;
-utilities.lazyLoad(exports, ["Random"], () => require("./random"));
+export { ScimServiceProviderArgs } from "./scimServiceProvider";
+export type ScimServiceProvider = import("./scimServiceProvider").ScimServiceProvider;
+export const ScimServiceProvider: typeof import("./scimServiceProvider").ScimServiceProvider = null as any;
+utilities.lazyLoad(exports, ["ScimServiceProvider"], () => require("./scimServiceProvider"));
 
-export { RandomComponentArgs } from "./randomComponent";
-export type RandomComponent = import("./randomComponent").RandomComponent;
-export const RandomComponent: typeof import("./randomComponent").RandomComponent = null as any;
-utilities.lazyLoad(exports, ["RandomComponent"], () => require("./randomComponent"));
+export { SignupTokenArgs } from "./signupToken";
+export type SignupToken = import("./signupToken").SignupToken;
+export const SignupToken: typeof import("./signupToken").SignupToken = null as any;
+utilities.lazyLoad(exports, ["SignupToken"], () => require("./signupToken"));
 
+export { UserArgs } from "./user";
+export type User = import("./user").User;
+export const User: typeof import("./user").User = null as any;
+utilities.lazyLoad(exports, ["User"], () => require("./user"));
+
+export { UserCustomClaimsArgs } from "./userCustomClaims";
+export type UserCustomClaims = import("./userCustomClaims").UserCustomClaims;
+export const UserCustomClaims: typeof import("./userCustomClaims").UserCustomClaims = null as any;
+utilities.lazyLoad(exports, ["UserCustomClaims"], () => require("./userCustomClaims"));
+
+export { UserGroupArgs } from "./userGroup";
+export type UserGroup = import("./userGroup").UserGroup;
+export const UserGroup: typeof import("./userGroup").UserGroup = null as any;
+utilities.lazyLoad(exports, ["UserGroup"], () => require("./userGroup"));
+
+export { UserGroupCustomClaimsArgs } from "./userGroupCustomClaims";
+export type UserGroupCustomClaims = import("./userGroupCustomClaims").UserGroupCustomClaims;
+export const UserGroupCustomClaims: typeof import("./userGroupCustomClaims").UserGroupCustomClaims = null as any;
+utilities.lazyLoad(exports, ["UserGroupCustomClaims"], () => require("./userGroupCustomClaims"));
+
+export { UserGroupMembersArgs } from "./userGroupMembers";
+export type UserGroupMembers = import("./userGroupMembers").UserGroupMembers;
+export const UserGroupMembers: typeof import("./userGroupMembers").UserGroupMembers = null as any;
+utilities.lazyLoad(exports, ["UserGroupMembers"], () => require("./userGroupMembers"));
+
+
+// Export enums:
+export * from "./types/enums";
 
 // Export sub-modules:
 import * as config from "./config";
+import * as types from "./types";
 
 export {
     config,
+    types,
 };
 
 const _module = {
     version: utilities.getVersion(),
     construct: (name: string, type: string, urn: string): pulumi.Resource => {
         switch (type) {
-            case "provider-boilerplate:index:Random":
-                return new Random(name, <any>undefined, { urn })
-            case "provider-boilerplate:index:RandomComponent":
-                return new RandomComponent(name, <any>undefined, { urn })
+            case "pocket-id:index:Api":
+                return new Api(name, <any>undefined, { urn })
+            case "pocket-id:index:ApiClientGrant":
+                return new ApiClientGrant(name, <any>undefined, { urn })
+            case "pocket-id:index:ApplicationConfiguration":
+                return new ApplicationConfiguration(name, <any>undefined, { urn })
+            case "pocket-id:index:ApplicationImage":
+                return new ApplicationImage(name, <any>undefined, { urn })
+            case "pocket-id:index:OidcClient":
+                return new OidcClient(name, <any>undefined, { urn })
+            case "pocket-id:index:OidcClientSecret":
+                return new OidcClientSecret(name, <any>undefined, { urn })
+            case "pocket-id:index:ScimServiceProvider":
+                return new ScimServiceProvider(name, <any>undefined, { urn })
+            case "pocket-id:index:SignupToken":
+                return new SignupToken(name, <any>undefined, { urn })
+            case "pocket-id:index:User":
+                return new User(name, <any>undefined, { urn })
+            case "pocket-id:index:UserCustomClaims":
+                return new UserCustomClaims(name, <any>undefined, { urn })
+            case "pocket-id:index:UserGroup":
+                return new UserGroup(name, <any>undefined, { urn })
+            case "pocket-id:index:UserGroupCustomClaims":
+                return new UserGroupCustomClaims(name, <any>undefined, { urn })
+            case "pocket-id:index:UserGroupMembers":
+                return new UserGroupMembers(name, <any>undefined, { urn })
             default:
                 throw new Error(`unknown resource type ${type}`);
         }
     },
 };
-pulumi.runtime.registerResourceModule("provider-boilerplate", "index", _module)
-pulumi.runtime.registerResourcePackage("provider-boilerplate", {
+pulumi.runtime.registerResourceModule("pocket-id", "index", _module)
+pulumi.runtime.registerResourcePackage("pocket-id", {
     version: utilities.getVersion(),
     constructProvider: (name: string, type: string, urn: string): pulumi.ProviderResource => {
-        if (type !== "pulumi:providers:provider-boilerplate") {
+        if (type !== "pulumi:providers:pocket-id") {
             throw new Error(`unknown provider type ${type}`);
         }
         return new Provider(name, <any>undefined, { urn });

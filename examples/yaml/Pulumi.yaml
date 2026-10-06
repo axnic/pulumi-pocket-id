@@ -1,16 +1,76 @@
-name: provider-boilerplate
+name: pocket-id-example-yaml
 runtime: yaml
 
+# A group of users and an OIDC client only that group may sign in to, plus an
+# API the client is granted access to. Needs `pocket-id:baseUrl` and
+# `pocket-id:apiKey` in the stack config (see README.md).
 resources:
-  myRandomResource:
-    type: provider-boilerplate:Random
+  engineers:
+    type: pocket-id:index:UserGroup
     properties:
-      length: 24
-  myRandomComponent:
-    type: provider-boilerplate:RandomComponent
+      name: engineers
+      friendlyName: Engineers
+
+  alice:
+    type: pocket-id:index:User
     properties:
-      length: 24
+      username: alice
+      email: alice@example.com
+      firstName: Alice
+      lastName: Liddell
+      displayName: Alice Liddell
+
+  # Authoritative: the group contains exactly these users.
+  engineersMembers:
+    type: pocket-id:index:UserGroupMembers
+    properties:
+      groupId: ${engineers.id}
+      userIds:
+        - ${alice.id}
+
+  app:
+    type: pocket-id:index:OidcClient
+    properties:
+      name: My Application
+      callbackUrls:
+        - https://app.example.com/callback
+      logoutCallbackUrls:
+        - https://app.example.com/logout
+      # Only members of these groups can sign in to the client.
+      allowedUserGroupIds:
+        - ${engineers.id}
+      # Uploads the client logo. Use fn::fileAsset: ./logo.png for a file on disk.
+      # Mutually exclusive with logoUrl.
+      logo:
+        fn::stringAsset: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="#3366cc"/></svg>'
+
+  appSecret:
+    type: pocket-id:index:OidcClientSecret
+    properties:
+      clientId: ${app.id}
+
+  backend:
+    type: pocket-id:index:Api
+    properties:
+      name: Backend API
+      resource: https://api.example.com
+      permissions:
+        - key: read
+          name: Read
+          description: Read access to the backend
+
+  appBackendAccess:
+    type: pocket-id:index:ApiClientGrant
+    properties:
+      apiId: ${backend.id}
+      clientId: ${app.id}
+      clientAccess: true
+      clientPermissionKeys:
+        - read
 
 outputs:
-  output:
-    value: ${myRandomResource.result}
+  groupId: ${engineers.id}
+  username: ${alice.username}
+  clientId: ${app.clientId}
+  clientSecret: ${appSecret.secret}
+  apiId: ${backend.id}

@@ -13,7 +13,9 @@ ci-scripts
 provider/**/schema-embed.json
 
 sdk/dotnet/version.txt
-sdk/java/.gradle
-sdk/java/build/
-sdk/java/build.gradle
 sdk/python/venv
+
+# mise local state (generated lock directories): never tracked.
+.mise/
+coverage.txt
+/bin/

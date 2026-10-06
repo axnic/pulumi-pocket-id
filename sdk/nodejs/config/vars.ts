@@ -5,12 +5,26 @@ import * as pulumi from "@pulumi/pulumi";
 import * as utilities from "../utilities";
 
 declare var exports: any;
-const __config = new pulumi.Config("provider-boilerplate");
+const __config = new pulumi.Config("pocket-id");
 
-export declare const itsasecret: boolean | undefined;
-Object.defineProperty(exports, "itsasecret", {
+/**
+ * A Pocket-ID API key sent with every request in the X-API-Key header. Falls back to the POCKET_ID_API_KEY environment variable if not set.
+ */
+export declare const apiKey: string | undefined;
+Object.defineProperty(exports, "apiKey", {
     get() {
-        return __config.getObject<boolean>("itsasecret");
+        return __config.get("apiKey");
+    },
+    enumerable: true,
+});
+
+/**
+ * The base URL of the Pocket-ID server, e.g. "https://pocket-id.example.com". Falls back to the POCKET_ID_BASE_URL environment variable if not set.
+ */
+export declare const baseUrl: string | undefined;
+Object.defineProperty(exports, "baseUrl", {
+    get() {
+        return __config.get("baseUrl");
     },
     enumerable: true,
 });
