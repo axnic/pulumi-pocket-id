@@ -1,0 +1,1822 @@
+{
+  "name": "pocket-id",
+  "displayName": "pulumi-pocket-id",
+  "description": "A Pulumi provider for Pocket-ID, a passkey-only OIDC provider.",
+  "keywords": [
+    "pocket-id",
+    "oidc",
+    "identity",
+    "passkey",
+    "self-hosted"
+  ],
+  "homepage": "https://github.com/axnic/pulumi-pocket-id",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/axnic/pulumi-pocket-id",
+  "pluginDownloadURL": "github://api.github.com/axnic/pulumi-pocket-id",
+  "publisher": "axnic",
+  "namespace": "axnic",
+  "language": {
+    "csharp": {
+      "respectSchemaVersion": true,
+      "rootNamespace": "Axnic.Pulumi"
+    },
+    "go": {
+      "generateResourceContainerTypes": true,
+      "importBasePath": "github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id",
+      "respectSchemaVersion": true
+    },
+    "nodejs": {
+      "packageName": "@axnic/pulumi-pocket-id",
+      "respectSchemaVersion": true
+    },
+    "python": {
+      "packageName": "pulumi_pocket_id",
+      "pyproject": {
+        "enabled": true
+      },
+      "respectSchemaVersion": true
+    }
+  },
+  "config": {
+    "variables": {
+      "apiKey": {
+        "type": "string",
+        "description": "A Pocket-ID API key sent with every request in the X-API-Key header. Falls back to the POCKET_ID_API_KEY environment variable if not set.",
+        "secret": true
+      },
+      "baseUrl": {
+        "type": "string",
+        "description": "The base URL of the Pocket-ID server, e.g. \"https://pocket-id.example.com\". Falls back to the POCKET_ID_BASE_URL environment variable if not set."
+      }
+    }
+  },
+  "types": {
+    "pocket-id:index:ApiCimdAccess": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether clients registered through a Client ID Metadata Document (CIMD) may use the API."
+        },
+        "permissionKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The keys of the API permissions that such clients may request. Each key must be declared in `permissions`."
+        }
+      },
+      "type": "object",
+      "required": [
+        "enabled"
+      ]
+    },
+    "pocket-id:index:ApiPermissionArgs": {
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A description of the permission."
+        },
+        "key": {
+          "type": "string",
+          "description": "The stable identifier of the permission, e.g. \"read:orders\". Unique within the API."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the permission."
+        }
+      },
+      "type": "object",
+      "required": [
+        "key",
+        "name"
+      ]
+    },
+    "pocket-id:index:ApiPermissionState": {
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A description of the permission."
+        },
+        "id": {
+          "type": "string",
+          "description": "The Pocket-ID identifier of the permission."
+        },
+        "key": {
+          "type": "string",
+          "description": "The stable identifier of the permission, e.g. \"read:orders\". Unique within the API."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the permission."
+        }
+      },
+      "type": "object",
+      "required": [
+        "key",
+        "name",
+        "id"
+      ]
+    },
+    "pocket-id:index:ApplicationImageType": {
+      "type": "string",
+      "enum": [
+        {
+          "description": "The light mode application logo.",
+          "value": "logo"
+        },
+        {
+          "description": "The dark mode application logo.",
+          "value": "darkLogo"
+        },
+        {
+          "description": "The favicon. It cannot be deleted.",
+          "value": "favicon"
+        },
+        {
+          "description": "The login page background.",
+          "value": "background"
+        },
+        {
+          "description": "The image used in e-mails. It cannot be deleted.",
+          "value": "email"
+        },
+        {
+          "description": "The default profile picture of users.",
+          "value": "defaultProfilePicture"
+        }
+      ]
+    },
+    "pocket-id:index:OidcClientCredentials": {
+      "properties": {
+        "federatedIdentities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/pocket-id:index:OidcFederatedIdentity"
+          },
+          "description": "The federated identities allowed to authenticate as the client."
+        }
+      },
+      "type": "object"
+    },
+    "pocket-id:index:OidcFederatedIdentity": {
+      "properties": {
+        "audience": {
+          "type": "string",
+          "description": "The expected audience of the federated identity."
+        },
+        "issuer": {
+          "type": "string",
+          "description": "The issuer URL of the federated identity."
+        },
+        "jwks": {
+          "type": "string",
+          "description": "The URL or content of the JWKS used to verify the federated identity."
+        },
+        "replayProtection": {
+          "type": "boolean",
+          "description": "Whether tokens issued by the federated identity can only be used once."
+        },
+        "subject": {
+          "type": "string",
+          "description": "The expected subject of the federated identity."
+        }
+      },
+      "type": "object",
+      "required": [
+        "issuer"
+      ]
+    }
+  },
+  "provider": {
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "description": "A Pocket-ID API key sent with every request in the X-API-Key header. Falls back to the POCKET_ID_API_KEY environment variable if not set.",
+        "secret": true
+      },
+      "baseUrl": {
+        "type": "string",
+        "description": "The base URL of the Pocket-ID server, e.g. \"https://pocket-id.example.com\". Falls back to the POCKET_ID_BASE_URL environment variable if not set."
+      }
+    },
+    "inputProperties": {
+      "apiKey": {
+        "type": "string",
+        "description": "A Pocket-ID API key sent with every request in the X-API-Key header. Falls back to the POCKET_ID_API_KEY environment variable if not set.",
+        "secret": true
+      },
+      "baseUrl": {
+        "type": "string",
+        "description": "The base URL of the Pocket-ID server, e.g. \"https://pocket-id.example.com\". Falls back to the POCKET_ID_BASE_URL environment variable if not set."
+      }
+    }
+  },
+  "resources": {
+    "pocket-id:index:Api": {
+      "description": "A Pocket-ID API (OAuth resource server) and its permissions.",
+      "properties": {
+        "cimdAccess": {
+          "$ref": "#/types/pocket-id:index:ApiCimdAccess",
+          "description": "The access granted to clients registered through a Client ID Metadata Document, if managed."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The RFC 3339 timestamp at which the API was created."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the API."
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/pocket-id:index:ApiPermissionState"
+          },
+          "description": "The permissions of the API, including their Pocket-ID identifiers."
+        },
+        "resource": {
+          "type": "string",
+          "description": "The resource identifier (audience) of the API.",
+          "replaceOnChanges": true
+        }
+      },
+      "required": [
+        "name",
+        "resource",
+        "permissions",
+        "createdAt"
+      ],
+      "inputProperties": {
+        "cimdAccess": {
+          "$ref": "#/types/pocket-id:index:ApiCimdAccess",
+          "description": "The access granted to clients registered through a Client ID Metadata Document. When set it is authoritative; when omitted the server value is left untouched."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the API."
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/pocket-id:index:ApiPermissionArgs"
+          },
+          "description": "The permissions of the API. The list is authoritative: permissions not listed here are removed."
+        },
+        "resource": {
+          "type": "string",
+          "description": "The resource identifier (audience) of the API, usually a URL. Changing it replaces the API.",
+          "replaceOnChanges": true
+        }
+      },
+      "requiredInputs": [
+        "name",
+        "resource"
+      ]
+    },
+    "pocket-id:index:ApiClientGrant": {
+      "description": "The access of an OIDC client on an API. Authoritative for the (API, client) pair; import with the ID \"<apiId>/<clientId>\".",
+      "properties": {
+        "apiId": {
+          "type": "string",
+          "description": "The ID of the API. Changing it replaces the grant.",
+          "replaceOnChanges": true
+        },
+        "clientAccess": {
+          "type": "boolean",
+          "description": "Whether the client may access the API on its own behalf (client credentials flow)."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "The ID of the OIDC client. Changing it replaces the grant.",
+          "replaceOnChanges": true
+        },
+        "clientPermissionKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The keys of the API permissions granted to the client on its own behalf."
+        },
+        "userDelegatedAccess": {
+          "type": "boolean",
+          "description": "Whether the client may access the API on behalf of users."
+        },
+        "userDelegatedPermissionKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The keys of the API permissions the client may use on behalf of users."
+        }
+      },
+      "required": [
+        "apiId",
+        "clientId"
+      ],
+      "inputProperties": {
+        "apiId": {
+          "type": "string",
+          "description": "The ID of the API. Changing it replaces the grant.",
+          "replaceOnChanges": true
+        },
+        "clientAccess": {
+          "type": "boolean",
+          "description": "Whether the client may access the API on its own behalf (client credentials flow)."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "The ID of the OIDC client. Changing it replaces the grant.",
+          "replaceOnChanges": true
+        },
+        "clientPermissionKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The keys of the API permissions granted to the client on its own behalf."
+        },
+        "userDelegatedAccess": {
+          "type": "boolean",
+          "description": "Whether the client may access the API on behalf of users."
+        },
+        "userDelegatedPermissionKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The keys of the API permissions the client may use on behalf of users."
+        }
+      },
+      "requiredInputs": [
+        "apiId",
+        "clientId"
+      ]
+    },
+    "pocket-id:index:ApplicationConfiguration": {
+      "description": "The instance-wide configuration of Pocket-ID. It is a singleton with the fixed ID \"app-config\": only the fields that are set are managed, the others keep their current value on the server, and destroying the resource leaves the configuration untouched. Use at most one per instance.",
+      "properties": {
+        "accentColor": {
+          "type": "string",
+          "description": "The UI accent color, as \"default\" or a CSS color value."
+        },
+        "allowOwnAccountEdit": {
+          "type": "boolean",
+          "description": "Whether users may edit their own account details."
+        },
+        "allowUserSignups": {
+          "type": "string",
+          "description": "Who may sign up by themselves: \"disabled\", \"withToken\" or \"open\"."
+        },
+        "appName": {
+          "type": "string",
+          "description": "The application name shown in the UI and in emails (1 to 30 characters)."
+        },
+        "autoCreateOidcClientSecret": {
+          "type": "boolean",
+          "description": "Whether a secret is generated automatically when an OIDC client is created."
+        },
+        "cimdUrlAllowlist": {
+          "type": "string",
+          "description": "The allowlist of URLs accepted as OIDC client metadata documents (CIMD), in the format Pocket-ID expects."
+        },
+        "disableAnimations": {
+          "type": "boolean",
+          "description": "Whether to disable the UI animations."
+        },
+        "emailApiKeyExpirationEnabled": {
+          "type": "boolean",
+          "description": "Whether an email is sent when an API key is about to expire."
+        },
+        "emailLoginNotificationEnabled": {
+          "type": "boolean",
+          "description": "Whether an email is sent when a user signs in from a new device."
+        },
+        "emailOneTimeAccessAsAdminEnabled": {
+          "type": "boolean",
+          "description": "Whether administrators may send one-time access links by email."
+        },
+        "emailOneTimeAccessAsUnauthenticatedEnabled": {
+          "type": "boolean",
+          "description": "Whether unauthenticated users may request a one-time access link by email."
+        },
+        "emailVerificationEnabled": {
+          "type": "boolean",
+          "description": "Whether users must verify their email address."
+        },
+        "emailsVerified": {
+          "type": "boolean",
+          "description": "Whether emails are considered verified by default."
+        },
+        "homePageUrl": {
+          "type": "string",
+          "description": "The path of the page users land on after signing in, e.g. \"/settings/account\"."
+        },
+        "ldapAdminGroupName": {
+          "type": "string",
+          "description": "The name of the LDAP group whose members become Pocket-ID administrators."
+        },
+        "ldapAttributeGroupMember": {
+          "type": "string",
+          "description": "The LDAP attribute listing the members of a group."
+        },
+        "ldapAttributeGroupName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the group name."
+        },
+        "ldapAttributeGroupUniqueIdentifier": {
+          "type": "string",
+          "description": "The LDAP attribute holding the unique identifier of a group."
+        },
+        "ldapAttributeUserDisplayName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the display name."
+        },
+        "ldapAttributeUserEmail": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the email address."
+        },
+        "ldapAttributeUserFirstName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the first name."
+        },
+        "ldapAttributeUserLastName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the last name."
+        },
+        "ldapAttributeUserProfilePicture": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the profile picture."
+        },
+        "ldapAttributeUserUniqueIdentifier": {
+          "type": "string",
+          "description": "The LDAP attribute holding the unique identifier of a user."
+        },
+        "ldapAttributeUserUsername": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the user name."
+        },
+        "ldapBase": {
+          "type": "string",
+          "description": "The LDAP base DN under which users and groups are searched."
+        },
+        "ldapBindDn": {
+          "type": "string",
+          "description": "The distinguished name used to bind to the LDAP server."
+        },
+        "ldapBindPassword": {
+          "type": "string",
+          "description": "The LDAP bind password. It is a secret and is never read back from Pocket-ID: the value in state is the one from the program, and it is empty after an import.",
+          "secret": true
+        },
+        "ldapEnabled": {
+          "type": "boolean",
+          "description": "Whether LDAP synchronization is enabled."
+        },
+        "ldapSkipCertVerify": {
+          "type": "boolean",
+          "description": "Whether to skip the verification of the LDAP server certificate."
+        },
+        "ldapSoftDeleteUsers": {
+          "type": "boolean",
+          "description": "Whether users removed from LDAP are disabled instead of deleted."
+        },
+        "ldapUrl": {
+          "type": "string",
+          "description": "The LDAP server URL, e.g. \"ldaps://ldap.example.com:636\"."
+        },
+        "ldapUserGroupSearchFilter": {
+          "type": "string",
+          "description": "The LDAP filter selecting groups, e.g. \"(objectClass=groupOfNames)\"."
+        },
+        "ldapUserSearchFilter": {
+          "type": "string",
+          "description": "The LDAP filter selecting users, e.g. \"(objectClass=person)\"."
+        },
+        "requireUserEmail": {
+          "type": "boolean",
+          "description": "Whether an email address is required for every user."
+        },
+        "sessionDuration": {
+          "type": "integer",
+          "description": "The session lifetime, in minutes."
+        },
+        "signupDefaultCustomClaims": {
+          "type": "string",
+          "description": "The custom claims given to new users, as the JSON array string Pocket-ID expects."
+        },
+        "signupDefaultUserGroupIDs": {
+          "type": "string",
+          "description": "The IDs of the user groups new users join, as the JSON array string Pocket-ID expects."
+        },
+        "smtpFrom": {
+          "type": "string",
+          "description": "The sender address of outgoing emails."
+        },
+        "smtpHost": {
+          "type": "string",
+          "description": "The SMTP server host name."
+        },
+        "smtpPassword": {
+          "type": "string",
+          "description": "The SMTP password. It is a secret and is never read back from Pocket-ID: the value in state is the one from the program, and it is empty after an import.",
+          "secret": true
+        },
+        "smtpPort": {
+          "type": "integer",
+          "description": "The SMTP server port."
+        },
+        "smtpSkipCertVerify": {
+          "type": "boolean",
+          "description": "Whether to skip the verification of the SMTP server certificate."
+        },
+        "smtpTls": {
+          "type": "string",
+          "description": "The SMTP transport security: \"none\", \"starttls\" or \"tls\"."
+        },
+        "smtpUser": {
+          "type": "string",
+          "description": "The SMTP user name."
+        },
+        "webauthnAllowSyncedPasskeys": {
+          "type": "boolean",
+          "description": "Whether passkeys synced between devices are accepted."
+        },
+        "webauthnAuthenticatorAttachment": {
+          "type": "string",
+          "description": "The accepted authenticator attachment: \"any\", \"platform\" or \"cross-platform\"."
+        },
+        "webauthnUserVerification": {
+          "type": "string",
+          "description": "The user verification requirement: \"required\" or \"preferred\"."
+        }
+      },
+      "inputProperties": {
+        "accentColor": {
+          "type": "string",
+          "description": "The UI accent color, as \"default\" or a CSS color value."
+        },
+        "allowOwnAccountEdit": {
+          "type": "boolean",
+          "description": "Whether users may edit their own account details."
+        },
+        "allowUserSignups": {
+          "type": "string",
+          "description": "Who may sign up by themselves: \"disabled\", \"withToken\" or \"open\"."
+        },
+        "appName": {
+          "type": "string",
+          "description": "The application name shown in the UI and in emails (1 to 30 characters)."
+        },
+        "autoCreateOidcClientSecret": {
+          "type": "boolean",
+          "description": "Whether a secret is generated automatically when an OIDC client is created."
+        },
+        "cimdUrlAllowlist": {
+          "type": "string",
+          "description": "The allowlist of URLs accepted as OIDC client metadata documents (CIMD), in the format Pocket-ID expects."
+        },
+        "disableAnimations": {
+          "type": "boolean",
+          "description": "Whether to disable the UI animations."
+        },
+        "emailApiKeyExpirationEnabled": {
+          "type": "boolean",
+          "description": "Whether an email is sent when an API key is about to expire."
+        },
+        "emailLoginNotificationEnabled": {
+          "type": "boolean",
+          "description": "Whether an email is sent when a user signs in from a new device."
+        },
+        "emailOneTimeAccessAsAdminEnabled": {
+          "type": "boolean",
+          "description": "Whether administrators may send one-time access links by email."
+        },
+        "emailOneTimeAccessAsUnauthenticatedEnabled": {
+          "type": "boolean",
+          "description": "Whether unauthenticated users may request a one-time access link by email."
+        },
+        "emailVerificationEnabled": {
+          "type": "boolean",
+          "description": "Whether users must verify their email address."
+        },
+        "emailsVerified": {
+          "type": "boolean",
+          "description": "Whether emails are considered verified by default."
+        },
+        "homePageUrl": {
+          "type": "string",
+          "description": "The path of the page users land on after signing in, e.g. \"/settings/account\"."
+        },
+        "ldapAdminGroupName": {
+          "type": "string",
+          "description": "The name of the LDAP group whose members become Pocket-ID administrators."
+        },
+        "ldapAttributeGroupMember": {
+          "type": "string",
+          "description": "The LDAP attribute listing the members of a group."
+        },
+        "ldapAttributeGroupName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the group name."
+        },
+        "ldapAttributeGroupUniqueIdentifier": {
+          "type": "string",
+          "description": "The LDAP attribute holding the unique identifier of a group."
+        },
+        "ldapAttributeUserDisplayName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the display name."
+        },
+        "ldapAttributeUserEmail": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the email address."
+        },
+        "ldapAttributeUserFirstName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the first name."
+        },
+        "ldapAttributeUserLastName": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the last name."
+        },
+        "ldapAttributeUserProfilePicture": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the profile picture."
+        },
+        "ldapAttributeUserUniqueIdentifier": {
+          "type": "string",
+          "description": "The LDAP attribute holding the unique identifier of a user."
+        },
+        "ldapAttributeUserUsername": {
+          "type": "string",
+          "description": "The LDAP attribute mapped to the user name."
+        },
+        "ldapBase": {
+          "type": "string",
+          "description": "The LDAP base DN under which users and groups are searched."
+        },
+        "ldapBindDn": {
+          "type": "string",
+          "description": "The distinguished name used to bind to the LDAP server."
+        },
+        "ldapBindPassword": {
+          "type": "string",
+          "description": "The LDAP bind password. It is a secret and is never read back from Pocket-ID: the value in state is the one from the program, and it is empty after an import.",
+          "secret": true
+        },
+        "ldapEnabled": {
+          "type": "boolean",
+          "description": "Whether LDAP synchronization is enabled."
+        },
+        "ldapSkipCertVerify": {
+          "type": "boolean",
+          "description": "Whether to skip the verification of the LDAP server certificate."
+        },
+        "ldapSoftDeleteUsers": {
+          "type": "boolean",
+          "description": "Whether users removed from LDAP are disabled instead of deleted."
+        },
+        "ldapUrl": {
+          "type": "string",
+          "description": "The LDAP server URL, e.g. \"ldaps://ldap.example.com:636\"."
+        },
+        "ldapUserGroupSearchFilter": {
+          "type": "string",
+          "description": "The LDAP filter selecting groups, e.g. \"(objectClass=groupOfNames)\"."
+        },
+        "ldapUserSearchFilter": {
+          "type": "string",
+          "description": "The LDAP filter selecting users, e.g. \"(objectClass=person)\"."
+        },
+        "requireUserEmail": {
+          "type": "boolean",
+          "description": "Whether an email address is required for every user."
+        },
+        "sessionDuration": {
+          "type": "integer",
+          "description": "The session lifetime, in minutes."
+        },
+        "signupDefaultCustomClaims": {
+          "type": "string",
+          "description": "The custom claims given to new users, as the JSON array string Pocket-ID expects."
+        },
+        "signupDefaultUserGroupIDs": {
+          "type": "string",
+          "description": "The IDs of the user groups new users join, as the JSON array string Pocket-ID expects."
+        },
+        "smtpFrom": {
+          "type": "string",
+          "description": "The sender address of outgoing emails."
+        },
+        "smtpHost": {
+          "type": "string",
+          "description": "The SMTP server host name."
+        },
+        "smtpPassword": {
+          "type": "string",
+          "description": "The SMTP password. It is a secret and is never read back from Pocket-ID: the value in state is the one from the program, and it is empty after an import.",
+          "secret": true
+        },
+        "smtpPort": {
+          "type": "integer",
+          "description": "The SMTP server port."
+        },
+        "smtpSkipCertVerify": {
+          "type": "boolean",
+          "description": "Whether to skip the verification of the SMTP server certificate."
+        },
+        "smtpTls": {
+          "type": "string",
+          "description": "The SMTP transport security: \"none\", \"starttls\" or \"tls\"."
+        },
+        "smtpUser": {
+          "type": "string",
+          "description": "The SMTP user name."
+        },
+        "webauthnAllowSyncedPasskeys": {
+          "type": "boolean",
+          "description": "Whether passkeys synced between devices are accepted."
+        },
+        "webauthnAuthenticatorAttachment": {
+          "type": "string",
+          "description": "The accepted authenticator attachment: \"any\", \"platform\" or \"cross-platform\"."
+        },
+        "webauthnUserVerification": {
+          "type": "string",
+          "description": "The user verification requirement: \"required\" or \"preferred\"."
+        }
+      }
+    },
+    "pocket-id:index:ApplicationImage": {
+      "description": "A global Pocket-ID branding image (logo, dark logo, favicon, background, e-mail image or default profile picture) uploaded from a local file or asset. Destroying it deletes the custom image and restores the default, except for the favicon and the e-mail image, which the API cannot delete: destroying those only removes the resource from state. Import with the type, e.g. \"favicon\". Per-user profile pictures are not covered.",
+      "properties": {
+        "image": {
+          "$ref": "pulumi.json#/Asset",
+          "description": "The image file as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file. It is not read back as an asset: after an import it is empty and must be set in the program."
+        },
+        "sha256": {
+          "type": "string",
+          "description": "The hex SHA-256 digest of the image content. At refresh it is the digest of the bytes currently served by Pocket-ID, so out-of-band changes show up as a diff."
+        },
+        "type": {
+          "$ref": "#/types/pocket-id:index:ApplicationImageType",
+          "description": "Which image to manage. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "required": [
+        "type",
+        "image",
+        "sha256"
+      ],
+      "inputProperties": {
+        "image": {
+          "$ref": "pulumi.json#/Asset",
+          "description": "The image file as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file. It is not read back as an asset: after an import it is empty and must be set in the program."
+        },
+        "type": {
+          "$ref": "#/types/pocket-id:index:ApplicationImageType",
+          "description": "Which image to manage. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "requiredInputs": [
+        "type",
+        "image"
+      ]
+    },
+    "pocket-id:index:OidcClient": {
+      "description": "An OIDC client of Pocket-ID. The client never creates a secret by itself; use OidcClientSecret to generate one. The allowed user groups are owned by this resource. The logos are set either from a URL (logoUrl, darkLogoUrl) or from an uploaded file (logo, darkLogo), never both for the same variant.",
+      "properties": {
+        "accessTokenDurationMinutes": {
+          "type": "integer",
+          "description": "The access token lifetime in minutes. Pocket-ID's default applies when unset."
+        },
+        "allowedUserGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The IDs of the user groups allowed to use the client. Authoritative: the set is replaced on every update, and the client is restricted to these groups when the list is non-empty (unrestricted when empty)."
+        },
+        "backchannelLogoutUrl": {
+          "type": "string",
+          "description": "The URL called for OIDC back-channel logout."
+        },
+        "callbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The allowed redirect URLs."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "The ID of the client. Generated by Pocket-ID when unset. Changing it replaces the client.",
+          "replaceOnChanges": true
+        },
+        "clientType": {
+          "type": "string",
+          "description": "The client type reported by Pocket-ID (confidential or public)."
+        },
+        "credentials": {
+          "$ref": "#/types/pocket-id:index:OidcClientCredentials",
+          "description": "The credentials of the client managed here (federated identities)."
+        },
+        "darkLogo": {
+          "$ref": "pulumi.json#/Asset",
+          "description": "The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one."
+        },
+        "darkLogoSha256": {
+          "type": "string",
+          "description": "The hex SHA-256 digest of the uploaded dark mode logo (see darkLogo). At refresh it is the digest of the bytes currently served by Pocket-ID, so out-of-band changes show up as a diff."
+        },
+        "darkLogoUrl": {
+          "type": "string",
+          "description": "A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the client (150 characters max)."
+        },
+        "hasDarkLogo": {
+          "type": "boolean",
+          "description": "Whether the client has a dark mode logo."
+        },
+        "hasLogo": {
+          "type": "boolean",
+          "description": "Whether the client has a logo."
+        },
+        "isGroupRestricted": {
+          "type": "boolean",
+          "description": "Whether access is restricted to the allowed user groups."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Whether the client is public (no client secret, PKCE recommended)."
+        },
+        "launchUrl": {
+          "type": "string",
+          "description": "The URL used to launch the application from the Pocket-ID dashboard."
+        },
+        "logo": {
+          "$ref": "pulumi.json#/Asset",
+          "description": "The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one."
+        },
+        "logoSha256": {
+          "type": "string",
+          "description": "The hex SHA-256 digest of the uploaded logo (see logo). At refresh it is the digest of the bytes currently served by Pocket-ID, so out-of-band changes show up as a diff."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file)."
+        },
+        "logoutCallbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The allowed post-logout redirect URLs."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the client (50 characters max)."
+        },
+        "pkceEnabled": {
+          "type": "boolean",
+          "description": "Whether PKCE is required for the client."
+        },
+        "pkceSupported": {
+          "type": "boolean",
+          "description": "Whether PKCE is supported for this client."
+        },
+        "refreshTokenDurationMinutes": {
+          "type": "integer",
+          "description": "The refresh token lifetime in minutes. Pocket-ID's default applies when unset."
+        },
+        "requiresPushedAuthorizationRequests": {
+          "type": "boolean",
+          "description": "Whether the client must use pushed authorization requests (PAR)."
+        },
+        "requiresReauthentication": {
+          "type": "boolean",
+          "description": "Whether users must re-authenticate on every authorization."
+        },
+        "skipConsent": {
+          "type": "boolean",
+          "description": "Whether the consent screen is skipped for this client."
+        }
+      },
+      "required": [
+        "name",
+        "clientType",
+        "pkceSupported",
+        "hasLogo",
+        "hasDarkLogo",
+        "isGroupRestricted"
+      ],
+      "inputProperties": {
+        "accessTokenDurationMinutes": {
+          "type": "integer",
+          "description": "The access token lifetime in minutes. Pocket-ID's default applies when unset."
+        },
+        "allowedUserGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The IDs of the user groups allowed to use the client. Authoritative: the set is replaced on every update, and the client is restricted to these groups when the list is non-empty (unrestricted when empty)."
+        },
+        "backchannelLogoutUrl": {
+          "type": "string",
+          "description": "The URL called for OIDC back-channel logout."
+        },
+        "callbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The allowed redirect URLs."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "The ID of the client. Generated by Pocket-ID when unset. Changing it replaces the client.",
+          "replaceOnChanges": true
+        },
+        "credentials": {
+          "$ref": "#/types/pocket-id:index:OidcClientCredentials",
+          "description": "The credentials of the client managed here (federated identities)."
+        },
+        "darkLogo": {
+          "$ref": "pulumi.json#/Asset",
+          "description": "The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one."
+        },
+        "darkLogoUrl": {
+          "type": "string",
+          "description": "A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the client (150 characters max)."
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Whether the client is public (no client secret, PKCE recommended)."
+        },
+        "launchUrl": {
+          "type": "string",
+          "description": "The URL used to launch the application from the Pocket-ID dashboard."
+        },
+        "logo": {
+          "$ref": "pulumi.json#/Asset",
+          "description": "The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file)."
+        },
+        "logoutCallbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The allowed post-logout redirect URLs."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the client (50 characters max)."
+        },
+        "pkceEnabled": {
+          "type": "boolean",
+          "description": "Whether PKCE is required for the client."
+        },
+        "refreshTokenDurationMinutes": {
+          "type": "integer",
+          "description": "The refresh token lifetime in minutes. Pocket-ID's default applies when unset."
+        },
+        "requiresPushedAuthorizationRequests": {
+          "type": "boolean",
+          "description": "Whether the client must use pushed authorization requests (PAR)."
+        },
+        "requiresReauthentication": {
+          "type": "boolean",
+          "description": "Whether users must re-authenticate on every authorization."
+        },
+        "skipConsent": {
+          "type": "boolean",
+          "description": "Whether the consent screen is skipped for this client."
+        }
+      },
+      "requiredInputs": [
+        "name"
+      ]
+    },
+    "pocket-id:index:OidcClientSecret": {
+      "description": "A client secret of an OIDC client. Several secrets can coexist, which allows rotating a secret without downtime: create the new one, then remove the old one. Every property is immutable: changing one replaces the secret.",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "description": "The ID of the OIDC client the secret belongs to. Changing it replaces the secret.",
+          "replaceOnChanges": true
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The creation date of the secret."
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "The expiration date of the secret (RFC 3339). Never expires when unset. Changing it replaces the secret.",
+          "replaceOnChanges": true
+        },
+        "prefix": {
+          "type": "string",
+          "description": "The first characters of the secret, as reported by Pocket-ID."
+        },
+        "secret": {
+          "type": "string",
+          "description": "The plain-text secret. Only returned by Pocket-ID at creation, so it is kept from the state and is empty after an import.",
+          "secret": true
+        },
+        "secretId": {
+          "type": "string",
+          "description": "The ID of the secret."
+        }
+      },
+      "required": [
+        "clientId",
+        "secretId",
+        "secret",
+        "prefix",
+        "createdAt"
+      ],
+      "inputProperties": {
+        "clientId": {
+          "type": "string",
+          "description": "The ID of the OIDC client the secret belongs to. Changing it replaces the secret.",
+          "replaceOnChanges": true
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "The expiration date of the secret (RFC 3339). Never expires when unset. Changing it replaces the secret.",
+          "replaceOnChanges": true
+        }
+      },
+      "requiredInputs": [
+        "clientId"
+      ]
+    },
+    "pocket-id:index:ScimServiceProvider": {
+      "description": "A SCIM service provider attached to an OIDC client. To import it, use the ID <oidcClientId>/<serviceProviderId>.",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "description": "The creation date of the service provider."
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "The base URL of the SCIM endpoint."
+        },
+        "lastSyncedAt": {
+          "type": "string",
+          "description": "The date of the last synchronization, empty if it never ran."
+        },
+        "oidcClientId": {
+          "type": "string",
+          "description": "The ID of the OIDC client the service provider belongs to. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "token": {
+          "type": "string",
+          "description": "The bearer token used to authenticate against the SCIM endpoint. Never read back from the API: it is kept from the state and unset after an import.",
+          "secret": true
+        }
+      },
+      "required": [
+        "oidcClientId",
+        "endpoint",
+        "createdAt",
+        "lastSyncedAt"
+      ],
+      "inputProperties": {
+        "endpoint": {
+          "type": "string",
+          "description": "The base URL of the SCIM endpoint."
+        },
+        "oidcClientId": {
+          "type": "string",
+          "description": "The ID of the OIDC client the service provider belongs to. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "token": {
+          "type": "string",
+          "description": "The bearer token used to authenticate against the SCIM endpoint. Never read back from the API: it is kept from the state and unset after an import.",
+          "secret": true
+        }
+      },
+      "requiredInputs": [
+        "oidcClientId",
+        "endpoint"
+      ]
+    },
+    "pocket-id:index:SignupToken": {
+      "description": "A Pocket-ID signup token that lets new users create their own account.",
+      "properties": {
+        "createdAt": {
+          "type": "string",
+          "description": "The RFC 3339 timestamp at which the token was created."
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "The RFC 3339 timestamp at which the token expires."
+        },
+        "token": {
+          "type": "string",
+          "description": "The secret signup token. It is captured at creation and carried in state; it is not read back from the API, so it is empty after an import.",
+          "secret": true
+        },
+        "ttl": {
+          "type": "integer",
+          "description": "The lifetime of the token in seconds. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "usageLimit": {
+          "type": "integer",
+          "description": "How many times the token can be used to sign up. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "userGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The IDs of the groups users signing up with this token join. Changing them replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "required": [
+        "ttl",
+        "usageLimit",
+        "token",
+        "createdAt",
+        "expiresAt"
+      ],
+      "inputProperties": {
+        "ttl": {
+          "type": "integer",
+          "description": "The lifetime of the token in seconds. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "usageLimit": {
+          "type": "integer",
+          "description": "How many times the token can be used to sign up. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "userGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The IDs of the groups users signing up with this token join. Changing them replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "requiredInputs": [
+        "ttl",
+        "usageLimit"
+      ]
+    },
+    "pocket-id:index:User": {
+      "description": "A Pocket-ID user. Group membership is managed with the UserGroupMembers resource.",
+      "properties": {
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the user is disabled and cannot sign in."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The name displayed for the user. Pocket-ID may derive it from the first and last names when unset."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user."
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Whether the email address is considered verified."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Whether the user is an administrator."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "locale": {
+          "type": "string",
+          "description": "The locale of the user, for example en or fr."
+        },
+        "username": {
+          "type": "string",
+          "description": "The unique login name of the user."
+        }
+      },
+      "required": [
+        "username"
+      ],
+      "inputProperties": {
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the user is disabled and cannot sign in."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The name displayed for the user. Pocket-ID may derive it from the first and last names when unset."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user."
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Whether the email address is considered verified."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Whether the user is an administrator."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "locale": {
+          "type": "string",
+          "description": "The locale of the user, for example en or fr."
+        },
+        "username": {
+          "type": "string",
+          "description": "The unique login name of the user."
+        }
+      },
+      "requiredInputs": [
+        "username"
+      ]
+    },
+    "pocket-id:index:UserCustomClaims": {
+      "description": "The authoritative set of custom claims of a user. Destroying the resource removes every custom claim from the user.",
+      "properties": {
+        "claims": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The custom claims of the user, as key/value pairs. The set is authoritative: claims not listed are removed from the user."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "required": [
+        "userId",
+        "claims"
+      ],
+      "inputProperties": {
+        "claims": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The custom claims of the user, as key/value pairs. The set is authoritative: claims not listed are removed from the user."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "requiredInputs": [
+        "userId",
+        "claims"
+      ]
+    },
+    "pocket-id:index:UserGroup": {
+      "description": "A Pocket-ID user group. Members are managed with the UserGroupMembers resource and custom claims with the UserGroupCustomClaims resource.",
+      "properties": {
+        "friendlyName": {
+          "type": "string",
+          "description": "The human-readable name of the group."
+        },
+        "name": {
+          "type": "string",
+          "description": "The unique technical name of the group."
+        }
+      },
+      "required": [
+        "name",
+        "friendlyName"
+      ],
+      "inputProperties": {
+        "friendlyName": {
+          "type": "string",
+          "description": "The human-readable name of the group."
+        },
+        "name": {
+          "type": "string",
+          "description": "The unique technical name of the group."
+        }
+      },
+      "requiredInputs": [
+        "name",
+        "friendlyName"
+      ]
+    },
+    "pocket-id:index:UserGroupCustomClaims": {
+      "description": "The authoritative set of custom claims of a user group. Destroying the resource removes every custom claim from the group.",
+      "properties": {
+        "claims": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The custom claims of the group, as key/value pairs. The set is authoritative: claims not listed are removed from the group."
+        },
+        "userGroupId": {
+          "type": "string",
+          "description": "The ID of the user group. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "required": [
+        "userGroupId",
+        "claims"
+      ],
+      "inputProperties": {
+        "claims": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The custom claims of the group, as key/value pairs. The set is authoritative: claims not listed are removed from the group."
+        },
+        "userGroupId": {
+          "type": "string",
+          "description": "The ID of the user group. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        }
+      },
+      "requiredInputs": [
+        "userGroupId",
+        "claims"
+      ]
+    },
+    "pocket-id:index:UserGroupMembers": {
+      "description": "The authoritative set of members of a user group. Destroying the resource removes every member from the group.",
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "description": "The ID of the group. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The IDs of all users that belong to the group. The set is authoritative: users not listed are removed from the group."
+        }
+      },
+      "required": [
+        "groupId",
+        "userIds"
+      ],
+      "inputProperties": {
+        "groupId": {
+          "type": "string",
+          "description": "The ID of the group. Changing it replaces the resource.",
+          "replaceOnChanges": true
+        },
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The IDs of all users that belong to the group. The set is authoritative: users not listed are removed from the group."
+        }
+      },
+      "requiredInputs": [
+        "groupId",
+        "userIds"
+      ]
+    }
+  },
+  "functions": {
+    "pocket-id:index:getOidcClient": {
+      "inputs": {
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "description": "The ID of the OIDC client to look up."
+          }
+        },
+        "type": "object",
+        "required": [
+          "clientId"
+        ]
+      },
+      "outputs": {
+        "properties": {
+          "accessTokenDurationMinutes": {
+            "description": "The access token lifetime in minutes.",
+            "type": "integer"
+          },
+          "allowedUserGroupIds": {
+            "description": "The IDs of the user groups allowed to use the client.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "backchannelLogoutUrl": {
+            "description": "The back-channel logout URL.",
+            "type": "string"
+          },
+          "callbackUrls": {
+            "description": "The allowed redirect URLs.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "clientId": {
+            "description": "The ID of the client.",
+            "type": "string"
+          },
+          "clientType": {
+            "description": "The client type reported by Pocket-ID.",
+            "type": "string"
+          },
+          "description": {
+            "description": "The description of the client.",
+            "type": "string"
+          },
+          "federatedIdentities": {
+            "description": "The federated identities allowed to authenticate as the client.",
+            "items": {
+              "$ref": "#/types/pocket-id:index:OidcFederatedIdentity"
+            },
+            "type": "array"
+          },
+          "hasDarkLogo": {
+            "description": "Whether the client has a dark mode logo.",
+            "type": "boolean"
+          },
+          "hasLogo": {
+            "description": "Whether the client has a logo.",
+            "type": "boolean"
+          },
+          "isGroupRestricted": {
+            "description": "Whether access is restricted to the allowed user groups.",
+            "type": "boolean"
+          },
+          "isPublic": {
+            "description": "Whether the client is public.",
+            "type": "boolean"
+          },
+          "launchUrl": {
+            "description": "The launch URL of the application.",
+            "type": "string"
+          },
+          "logoutCallbackUrls": {
+            "description": "The allowed post-logout redirect URLs.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "description": "The display name of the client.",
+            "type": "string"
+          },
+          "pkceEnabled": {
+            "description": "Whether PKCE is required.",
+            "type": "boolean"
+          },
+          "pkceSupported": {
+            "description": "Whether PKCE is supported.",
+            "type": "boolean"
+          },
+          "refreshTokenDurationMinutes": {
+            "description": "The refresh token lifetime in minutes.",
+            "type": "integer"
+          },
+          "requiresPushedAuthorizationRequests": {
+            "description": "Whether pushed authorization requests (PAR) are required.",
+            "type": "boolean"
+          },
+          "requiresReauthentication": {
+            "description": "Whether users must re-authenticate on every authorization.",
+            "type": "boolean"
+          },
+          "skipConsent": {
+            "description": "Whether the consent screen is skipped.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "clientId",
+          "name",
+          "description",
+          "clientType",
+          "callbackUrls",
+          "logoutCallbackUrls",
+          "launchUrl",
+          "hasLogo",
+          "hasDarkLogo",
+          "isPublic",
+          "pkceEnabled",
+          "pkceSupported",
+          "requiresReauthentication",
+          "requiresPushedAuthorizationRequests",
+          "skipConsent",
+          "isGroupRestricted",
+          "accessTokenDurationMinutes",
+          "refreshTokenDurationMinutes",
+          "backchannelLogoutUrl",
+          "federatedIdentities",
+          "allowedUserGroupIds"
+        ],
+        "type": "object"
+      }
+    },
+    "pocket-id:index:getOpenIdConfiguration": {
+      "description": "Reads the OpenID Connect discovery document of the Pocket-ID instance: issuer, endpoints, JWKS URI and supported capabilities. Use it to configure applications that consume the instance as an OIDC provider.",
+      "inputs": {
+        "type": "object"
+      },
+      "outputs": {
+        "properties": {
+          "authorizationEndpoint": {
+            "description": "The OAuth 2.0 authorization endpoint.",
+            "type": "string"
+          },
+          "claimsSupported": {
+            "description": "The supported claims.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "codeChallengeMethodsSupported": {
+            "description": "The supported PKCE code challenge methods.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "deviceAuthorizationEndpoint": {
+            "description": "The device authorization endpoint, empty if the instance does not advertise one.",
+            "type": "string"
+          },
+          "endSessionEndpoint": {
+            "description": "The RP-initiated logout endpoint, empty if the instance does not advertise one.",
+            "type": "string"
+          },
+          "grantTypesSupported": {
+            "description": "The supported OAuth 2.0 grant types.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "idTokenSigningAlgValuesSupported": {
+            "description": "The supported ID token signing algorithms.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "introspectionEndpoint": {
+            "description": "The token introspection endpoint, empty if the instance does not advertise one.",
+            "type": "string"
+          },
+          "issuer": {
+            "description": "The issuer URL, i.e. the base URL of the instance.",
+            "type": "string"
+          },
+          "jwksUri": {
+            "description": "The URL of the JSON Web Key Set used to verify issued tokens.",
+            "type": "string"
+          },
+          "responseTypesSupported": {
+            "description": "The supported response types.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "scopesSupported": {
+            "description": "The supported scopes.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "subjectTypesSupported": {
+            "description": "The supported subject identifier types.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tokenEndpoint": {
+            "description": "The OAuth 2.0 token endpoint.",
+            "type": "string"
+          },
+          "tokenEndpointAuthMethodsSupported": {
+            "description": "The supported client authentication methods at the token endpoint.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "userinfoEndpoint": {
+            "description": "The OIDC userinfo endpoint.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "issuer",
+          "authorizationEndpoint",
+          "tokenEndpoint",
+          "userinfoEndpoint",
+          "deviceAuthorizationEndpoint",
+          "introspectionEndpoint",
+          "endSessionEndpoint",
+          "jwksUri",
+          "grantTypesSupported",
+          "scopesSupported",
+          "claimsSupported",
+          "responseTypesSupported",
+          "subjectTypesSupported",
+          "idTokenSigningAlgValuesSupported",
+          "codeChallengeMethodsSupported",
+          "tokenEndpointAuthMethodsSupported"
+        ],
+        "type": "object"
+      }
+    },
+    "pocket-id:index:getUser": {
+      "description": "Looks up a Pocket-ID user by ID or by exact username.",
+      "inputs": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "The ID of the user. Exactly one of userId or username must be set."
+          },
+          "username": {
+            "type": "string",
+            "description": "The exact username of the user. Exactly one of userId or username must be set."
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "properties": {
+          "customClaims": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The custom claims of the user.",
+            "type": "object"
+          },
+          "disabled": {
+            "description": "Whether the user is disabled.",
+            "type": "boolean"
+          },
+          "displayName": {
+            "description": "The display name of the user.",
+            "type": "string"
+          },
+          "email": {
+            "description": "The email address of the user, empty if unset.",
+            "type": "string"
+          },
+          "emailVerified": {
+            "description": "Whether the email address is verified.",
+            "type": "boolean"
+          },
+          "firstName": {
+            "description": "The first name of the user.",
+            "type": "string"
+          },
+          "isAdmin": {
+            "description": "Whether the user is an administrator.",
+            "type": "boolean"
+          },
+          "lastName": {
+            "description": "The last name of the user, empty if unset.",
+            "type": "string"
+          },
+          "locale": {
+            "description": "The locale of the user, empty if unset.",
+            "type": "string"
+          },
+          "userGroupIds": {
+            "description": "The IDs of the groups the user belongs to.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "userId": {
+            "description": "The ID of the user.",
+            "type": "string"
+          },
+          "username": {
+            "description": "The username of the user.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "username",
+          "email",
+          "emailVerified",
+          "firstName",
+          "lastName",
+          "displayName",
+          "isAdmin",
+          "locale",
+          "disabled",
+          "customClaims",
+          "userGroupIds"
+        ],
+        "type": "object"
+      }
+    },
+    "pocket-id:index:getUserGroup": {
+      "description": "Looks up a Pocket-ID user group by ID or by exact name.",
+      "inputs": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The exact name of the group. Exactly one of userGroupId or name must be set."
+          },
+          "userGroupId": {
+            "type": "string",
+            "description": "The ID of the group. Exactly one of userGroupId or name must be set."
+          }
+        },
+        "type": "object"
+      },
+      "outputs": {
+        "properties": {
+          "customClaims": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The custom claims of the group.",
+            "type": "object"
+          },
+          "friendlyName": {
+            "description": "The human-readable name of the group.",
+            "type": "string"
+          },
+          "name": {
+            "description": "The name of the group.",
+            "type": "string"
+          },
+          "userGroupId": {
+            "description": "The ID of the group.",
+            "type": "string"
+          },
+          "userIds": {
+            "description": "The IDs of the members of the group.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "userGroupId",
+          "name",
+          "friendlyName",
+          "customClaims",
+          "userIds"
+        ],
+        "type": "object"
+      }
+    }
+  }
+}

@@ -1,0 +1,369 @@
+{
+  "name": "pocket-id",
+  "displayName": "pocket-id",
+  "description": "A Pulumi provider for Pocket-ID, a passkey-only OIDC provider.",
+  "homepage": "https://github.com/pocket-id/pocket-id",
+  "namespace": "pocketid",
+  "language": {
+    "csharp": {
+      "respectSchemaVersion": true
+    },
+    "go": {
+      "generateResourceContainerTypes": true,
+      "importBasePath": "github.com/pocketid/pocket-id/sdk/go/pocket-id",
+      "respectSchemaVersion": true
+    },
+    "nodejs": {
+      "respectSchemaVersion": true
+    },
+    "python": {
+      "pyproject": {
+        "enabled": true
+      },
+      "respectSchemaVersion": true
+    }
+  },
+  "config": {
+    "variables": {
+      "apiKey": {
+        "type": "string",
+        "secret": true
+      },
+      "baseUrl": {
+        "type": "string"
+      }
+    },
+    "defaults": [
+      "baseUrl",
+      "apiKey"
+    ]
+  },
+  "types": {
+    "pocket-id:index:CustomClaim": {
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "key",
+        "value"
+      ]
+    },
+    "pocket-id:index:FederatedIdentity": {
+      "properties": {
+        "audience": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "jwks": {
+          "type": "string"
+        },
+        "replayProtection": {
+          "type": "boolean"
+        },
+        "subject": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "required": [
+        "issuer"
+      ]
+    },
+    "pocket-id:index:OidcClientCredentials": {
+      "properties": {
+        "federatedIdentities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/pocket-id:index:FederatedIdentity"
+          }
+        }
+      },
+      "type": "object"
+    }
+  },
+  "provider": {
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "secret": true
+      },
+      "baseUrl": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "baseUrl",
+      "apiKey"
+    ],
+    "inputProperties": {
+      "apiKey": {
+        "type": "string",
+        "secret": true
+      },
+      "baseUrl": {
+        "type": "string"
+      }
+    },
+    "requiredInputs": [
+      "baseUrl",
+      "apiKey"
+    ]
+  },
+  "resources": {
+    "pocket-id:index:CustomClaims": {
+      "properties": {
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/pocket-id:index:CustomClaim"
+          }
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "ownerType": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ownerType",
+        "ownerId"
+      ],
+      "inputProperties": {
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/types/pocket-id:index:CustomClaim"
+          }
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "ownerType": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "ownerType",
+        "ownerId"
+      ]
+    },
+    "pocket-id:index:OidcClient": {
+      "properties": {
+        "callbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "credentials": {
+          "$ref": "#/types/pocket-id:index:OidcClientCredentials"
+        },
+        "hasDarkLogo": {
+          "type": "boolean"
+        },
+        "hasLogo": {
+          "type": "boolean"
+        },
+        "isGroupRestricted": {
+          "type": "boolean"
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "launchUrl": {
+          "type": "string"
+        },
+        "logoutCallbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "pkceEnabled": {
+          "type": "boolean"
+        },
+        "pkceSupported": {
+          "type": "boolean"
+        },
+        "requiresPushedAuthorizationRequests": {
+          "type": "boolean"
+        },
+        "requiresReauthentication": {
+          "type": "boolean"
+        },
+        "skipConsent": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "inputProperties": {
+        "callbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "credentials": {
+          "$ref": "#/types/pocket-id:index:OidcClientCredentials"
+        },
+        "isGroupRestricted": {
+          "type": "boolean"
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "launchUrl": {
+          "type": "string"
+        },
+        "logoutCallbackUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "pkceEnabled": {
+          "type": "boolean"
+        },
+        "requiresPushedAuthorizationRequests": {
+          "type": "boolean"
+        },
+        "requiresReauthentication": {
+          "type": "boolean"
+        },
+        "skipConsent": {
+          "type": "boolean"
+        }
+      },
+      "requiredInputs": [
+        "name"
+      ]
+    },
+    "pocket-id:index:User": {
+      "properties": {
+        "disabled": {
+          "type": "boolean"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "locale": {
+          "type": "string"
+        },
+        "userGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "username"
+      ],
+      "inputProperties": {
+        "disabled": {
+          "type": "boolean"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "isAdmin": {
+          "type": "boolean"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "locale": {
+          "type": "string"
+        },
+        "userGroupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "username"
+      ]
+    },
+    "pocket-id:index:UserGroup": {
+      "properties": {
+        "friendlyName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "friendlyName",
+        "name"
+      ],
+      "inputProperties": {
+        "friendlyName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "requiredInputs": [
+        "friendlyName",
+        "name"
+      ]
+    }
+  }
+}

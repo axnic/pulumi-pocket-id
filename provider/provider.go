@@ -1,4 +1,4 @@
-// Copyright 2025, Pulumi Corporation.
+// Copyright 2025, axnic.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package provider implements a simple random resource and component.
+// Package provider implements the Pulumi provider for Pocket-ID.
 package provider
 
 import (
@@ -27,17 +27,49 @@ import (
 var Version string
 
 // Name controls how this provider is referenced in package names and elsewhere.
-const Name string = "provider-boilerplate"
+const Name string = "pocket-id"
 
-// Provider creates a new instance of the provider.
+// Provider creates a new instance of the Pocket-ID provider.
 func Provider() p.Provider {
-	p, err := infer.NewProviderBuilder().
-		WithDisplayName("pulumi-provider-boilerplate").
-		WithDescription("An example built with pulumi-go-provider.").
-		WithHomepage("https://www.pulumi.com").
-		WithNamespace("pulumi").
-		WithResources(infer.Resource(Random{})).
-		WithComponents(infer.ComponentF(NewRandomComponent)).
+	prov, err := infer.NewProviderBuilder().
+		WithDisplayName("pulumi-pocket-id").
+		WithDescription("A Pulumi provider for Pocket-ID, a passkey-only OIDC provider.").
+		WithHomepage("https://github.com/axnic/pulumi-pocket-id").
+		WithRepository("https://github.com/axnic/pulumi-pocket-id").
+		WithPublisher("axnic").
+		WithLicense("Apache-2.0").
+		WithKeywords("pocket-id", "oidc", "identity", "passkey", "self-hosted").
+		WithNamespace("axnic").
+		WithGoImportPath("github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id").
+		// Lets `pulumi plugin install resource pocket-id <version>` and the
+		// engine's automatic resolution fetch the provider binary straight
+		// from this repo's GitHub Releases - no Pulumi Registry listing
+		// required for the provider binary itself to be usable.
+		WithPluginDownloadURL("github://api.github.com/axnic/pulumi-pocket-id").
+		WithLanguageMap(map[string]any{
+			"nodejs": map[string]any{
+				"packageName":           "@axnic/pulumi-pocket-id",
+				keyRespectSchemaVersion: true,
+			},
+			"python": map[string]any{
+				"packageName":           "pulumi_pocket_id",
+				keyRespectSchemaVersion: true,
+				"pyproject": map[string]any{
+					"enabled": true,
+				},
+			},
+			"csharp": map[string]any{
+				"rootNamespace":         "Axnic.Pulumi",
+				keyRespectSchemaVersion: true,
+			},
+			"go": map[string]any{
+				"generateResourceContainerTypes": true,
+				"importBasePath":                 "github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id",
+				keyRespectSchemaVersion:          true,
+			},
+		}).
+		WithResources(registeredResources...).
+		WithFunctions(registeredFunctions...).
 		WithConfig(infer.Config(&Config{})).
 		WithModuleMap(map[tokens.ModuleName]tokens.ModuleName{
 			"provider": "index",
@@ -45,10 +77,5 @@ func Provider() p.Provider {
 	if err != nil {
 		panic(fmt.Errorf("unable to build provider: %w", err))
 	}
-	return p
-}
-
-// Config defines provider-level configuration
-type Config struct {
-	Scream *bool `pulumi:"itsasecret,optional"`
+	return prov
 }
