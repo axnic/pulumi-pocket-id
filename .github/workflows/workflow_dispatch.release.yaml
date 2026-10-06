@@ -23,18 +23,18 @@ on:
   workflow_dispatch:
     inputs:
       bump:
-        description: Version bump (leave empty when `version` is set)
+        description: Version bump (choose `manual` to release the exact `version` below)
         required: false
         type: choice
         default: auto
         options:
-          - ""
           - auto
           - patch
           - minor
           - major
+          - manual
       version:
-        description: Exact version to release, without the leading "v" (leave empty when `bump` is set)
+        description: Exact version to release, without the leading "v" (only with the `manual` bump)
         required: false
         type: string
       notes:
@@ -62,7 +62,8 @@ jobs:
       contents: write
       pull-requests: read
     with:
-      bump: "${{ inputs.bump }}"
+      # `manual` is not a bump: the reusable workflow gets an empty bump and the exact `version`.
+      bump: "${{ inputs.bump != 'manual' && inputs.bump || '' }}"
       notes: "${{ inputs.notes }}"
       version: "${{ inputs.version }}"
 
