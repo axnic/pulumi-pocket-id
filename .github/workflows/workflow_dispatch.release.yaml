@@ -1,0 +1,372 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+#
+# =============================================================================
+# Release — Create a versioned release from the GitHub UI
+# =============================================================================
+# Triggered manually (Actions → Release → Run workflow). Set either `bump` or `version`,
+# not both. prepare runs `mise run ci`, computes the version, writes the notes and pushes
+# the tag; the publish jobs below build the provider, publish the GitHub Release (out of draft, so `pulumi plugin install` can download the provider) and push the SDKs.
+# Requires the mise task: ci.
+#
+# Jobs:
+#   prepare — run `mise run ci`, compute the version, write the notes, push the tag
+#   provider, go-sdk, nodejs, python, dotnet — publication, in this file: npm and NuGet trusted
+#             publishing only match a workflow of the repository itself, not a reusable one
+#
+# MANAGED BY TERRAFORM (axnic/.github, terraform/modules/workflows) — do not edit by hand.
+# Reusable workflow: https://github.com/axnic/.github/blob/main/.github/workflows/release.prepare.yaml
+# =============================================================================
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump (leave empty when `version` is set)
+        required: false
+        type: choice
+        default: auto
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      version:
+        description: Exact version to release, without the leading "v" (leave empty when `bump` is set)
+        required: false
+        type: string
+      notes:
+        description: Release notes override (leave empty to generate them)
+        required: false
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+# Minimal top-level permissions — each job declares what it needs.
+permissions: {}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # prepare — run `mise run ci`, compute the version, write the notes, push the tag
+  # ---------------------------------------------------------------------------
+  prepare:
+    name: 🏷️ Prepare
+    # Pinned to the axnic/.github commit that last changed this workflow; Terraform keeps it up to date.
+    uses: axnic/.github/.github/workflows/release.prepare.yaml@a684816739b43d901a9f4659187bf436a77446e5 # main
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: read
+    with:
+      bump: "${{ inputs.bump }}"
+      notes: "${{ inputs.notes }}"
+      version: "${{ inputs.version }}"
+
+  # ---------------------------------------------------------------------------
+  # provider — provider binaries on the release, provenance, release published
+  # ---------------------------------------------------------------------------
+  provider:
+    name: 🚀 Provider binaries (${{ needs.prepare.outputs.tag }})
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # uploads to the release and publishes it
+      id-token: write # OIDC token for the build provenance
+      attestations: write # stores the build provenance attestation
+
+    steps:
+      - name: ⬇️ Checkout tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: 🔧 Install tools via mise
+        uses: jdx/mise-action@9149ea85001c7435d5a66bb127d6a1b6227cb0a5 # v5.0.0
+        with:
+          cache: true
+          cache_key: "mise-v1-{{platform}}-{{file_hash}}"
+
+      # The notes are already on the draft release: an empty notes file only stops goreleaser
+      # from building a changelog it would not use.
+      - name: 📄 Prepare goreleaser
+        run: ': > "$RUNNER_TEMP/notes.md"'
+
+      - name: 🏗️ Build with goreleaser
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          version: ~> v2
+          args: release --clean --skip=publish --release-notes=${{ runner.temp }}/notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⬆️ Attach provider binaries to the release
+        id: assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          mapfile -t files < <(jq -r '.[] | select(.type | IN("Archive","Checksum","Signature","Certificate","SBOM")) | .path' dist/artifacts.json)
+          CHECKSUMS=$(jq -r 'first(.[] | select(.type == "Checksum") | .path) // empty' dist/artifacts.json)
+          if [[ -z "$CHECKSUMS" ]]; then
+            echo "::error::.goreleaser.yml produced no checksums file."
+            exit 1
+          fi
+          gh release upload "$TAG" "${files[@]}" --clobber
+          echo "checksums=$CHECKSUMS" >> "$GITHUB_OUTPUT"
+
+      - name: 🛡️ Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: ${{ steps.assets.outputs.checksums }}
+
+      # The prerelease flag set by release.prepare is kept.
+      - name: 📣 Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: gh release edit "$TAG" --draft=false
+
+  # ---------------------------------------------------------------------------
+  # go-sdk — sdk/go/<repository>/v<version> tag for Go module resolution
+  # ---------------------------------------------------------------------------
+  go-sdk:
+    name: 🏷️ Go SDK tag
+    needs: [prepare, provider] # no Go SDK tag for a provider that failed to build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # pushes the tag
+
+    steps:
+      - name: ⬇️ Checkout tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          persist-credentials: false
+
+      # The token reaches git through GIT_CONFIG_* (never on the command line, never on disk),
+      # the way actions/checkout does it; its base64 form is masked.
+      - name: 🏷️ Push the Go SDK tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: |
+          AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          echo "::add-mask::$AUTH"
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0="http.${GITHUB_SERVER_URL}/.extraheader"
+          export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $AUTH"
+          SDK_DIR="sdk/go/${REPOSITORY_NAME}"
+          SDK_TAG="${SDK_DIR}/${TAG}"
+          if [[ ! -f "${SDK_DIR}/go.mod" ]]; then
+            echo "::error::${SDK_DIR}/go.mod not found: the Go SDK must live in sdk/go/<repository name>."
+            exit 1
+          fi
+          COMMIT=$(git rev-parse "${TAG}^{commit}")
+          EXISTING=$(git ls-remote origin "refs/tags/${SDK_TAG}" | cut -f1)
+          if [[ -n "$EXISTING" ]]; then
+            if [[ "$EXISTING" != "$COMMIT" ]]; then
+              echo "::error::${SDK_TAG} already exists on another commit (${EXISTING})."
+              exit 1
+            fi
+            echo "::notice::${SDK_TAG} already exists - nothing to do."
+            exit 0
+          fi
+          git tag "$SDK_TAG" "$COMMIT"
+          git push origin "refs/tags/${SDK_TAG}"
+          echo "::notice::Pushed ${SDK_TAG}."
+
+  # ---------------------------------------------------------------------------
+  # nodejs — npm package (staged publishing, trusted publishing, NPM_TOKEN fallback)
+  # ---------------------------------------------------------------------------
+  nodejs:
+    name: 📦 Node.js SDK (npm)
+    needs: [prepare, provider]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing and provenance
+
+    steps:
+      - name: ⬇️ Checkout tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          persist-credentials: false
+
+      - name: 🔧 Install tools via mise
+        uses: jdx/mise-action@9149ea85001c7435d5a66bb127d6a1b6227cb0a5 # v5.0.0
+        with:
+          cache: true
+          cache_key: "mise-v1-{{platform}}-{{file_hash}}"
+
+      - name: 🏗️ Build the Node.js SDK
+        env:
+          PROVIDER_VERSION: ${{ needs.prepare.outputs.version }}
+        run: make nodejs_sdk PROVIDER_VERSION="$PROVIDER_VERSION"
+
+      # `npm stage` needs npm >= 11.15.0 (the one bundled with the mise node is older).
+      - name: ⬆️ Update npm
+        run: npm install --global npm@^11.15.0
+
+      - name: 🚀 Stage on npm (approval required)
+        working-directory: sdk/nodejs/bin
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ -n "$(npm view "${NAME}@${VERSION}" version 2>/dev/null)" ]]; then
+            echo "::notice::${NAME}@${VERSION} is already on npm - nothing to do."
+            exit 0
+          fi
+          # Without NPM_TOKEN, npm exchanges the OIDC token (trusted publishing).
+          if [[ -n "$NPM_TOKEN" ]]; then
+            export NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/.npmrc"
+            # Single quotes on purpose: npm expands ${NPM_TOKEN} from the environment itself.
+            # shellcheck disable=SC2016
+            echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > "$NPM_CONFIG_USERCONFIG"
+          fi
+          # Already staged and waiting for approval (best effort: the listing may need a login).
+          if npm stage list "$NAME" 2>/dev/null | grep -qF "$VERSION"; then
+            echo "::notice::${NAME}@${VERSION} is already staged - approve it with: npm stage approve <stage-id>"
+            exit 0
+          fi
+          # npm refuses to publish a prerelease to the default `latest` dist-tag.
+          DIST_TAG=latest
+          [[ "$VERSION" == *-* ]] && DIST_TAG=next
+          # Staged publishing: the version waits on npm until a maintainer approves it with 2FA
+          # (npm stage approve, or the "Staged Packages" tab on npmjs.com). It is not public yet.
+          npm stage publish --access public --provenance --tag "$DIST_TAG"
+          {
+            echo "### 📦 ${NAME}@${VERSION} is staged on npm, not published yet"
+            echo
+            echo "Approve it (2FA required): \`npm stage list ${NAME}\` then \`npm stage approve <stage-id>\`,"
+            echo "or use the *Staged Packages* tab on https://www.npmjs.com/package/${NAME}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # python — PyPI package (PYPI_API_TOKEN)
+  # ---------------------------------------------------------------------------
+  python:
+    name: 📦 Python SDK (PyPI)
+    needs: [prepare, provider]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # `if:` cannot read the secrets context: the check is a step.
+      - name: 🔎 Check the PyPI credential
+        id: credential
+        env:
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          if [[ -n "$PYPI_API_TOKEN" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::PYPI_API_TOKEN is not set - the python SDK is not published."
+          fi
+
+      - name: ⬇️ Checkout tag
+        if: steps.credential.outputs.enabled == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          persist-credentials: false
+
+      - name: 🔧 Install tools via mise
+        if: steps.credential.outputs.enabled == 'true'
+        uses: jdx/mise-action@9149ea85001c7435d5a66bb127d6a1b6227cb0a5 # v5.0.0
+        with:
+          cache: true
+          cache_key: "mise-v1-{{platform}}-{{file_hash}}"
+
+      - name: 🏗️ Build the Python SDK
+        if: steps.credential.outputs.enabled == 'true'
+        env:
+          PROVIDER_VERSION: ${{ needs.prepare.outputs.version }}
+        run: make python_sdk PROVIDER_VERSION="$PROVIDER_VERSION"
+
+      # make python_sdk creates the venv in sdk/python/, one level up from sdk/python/bin/ where
+      # the build output (dist/) lands.
+      - name: 🚀 Publish to PyPI
+        if: steps.credential.outputs.enabled == 'true'
+        working-directory: sdk/python/bin
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          ../venv/bin/python -m pip install twine
+          ../venv/bin/python -m twine upload --skip-existing dist/*
+
+  # ---------------------------------------------------------------------------
+  # dotnet — NuGet package (trusted publishing, NUGET_API_KEY fallback)
+  # ---------------------------------------------------------------------------
+  dotnet:
+    name: 📦 .NET SDK (NuGet)
+    needs: [prepare, provider]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # NuGet trusted publishing
+
+    steps:
+      # `if:` cannot read the secrets context: the check is a step.
+      - name: 🔎 Check the NuGet credential
+        id: credential
+        env:
+          NUGET_USER: ${{ secrets.NUGET_USER }}
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [[ -n "$NUGET_USER" ]]; then
+            echo "mode=oidc" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$NUGET_API_KEY" ]]; then
+            echo "mode=key" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=none" >> "$GITHUB_OUTPUT"
+            echo "::notice::Neither NUGET_USER nor NUGET_API_KEY is set - the dotnet SDK is not published."
+          fi
+
+      - name: ⬇️ Checkout tag
+        if: steps.credential.outputs.mode != 'none'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.prepare.outputs.tag }}
+          persist-credentials: false
+
+      - name: 🔧 Install tools via mise
+        if: steps.credential.outputs.mode != 'none'
+        uses: jdx/mise-action@9149ea85001c7435d5a66bb127d6a1b6227cb0a5 # v5.0.0
+        with:
+          cache: true
+          cache_key: "mise-v1-{{platform}}-{{file_hash}}"
+
+      - name: 🏗️ Build the .NET SDK
+        if: steps.credential.outputs.mode != 'none'
+        env:
+          PROVIDER_VERSION: ${{ needs.prepare.outputs.version }}
+        run: make dotnet_sdk PROVIDER_VERSION="$PROVIDER_VERSION"
+
+      - name: 🔑 Login to NuGet (OIDC → temporary API key)
+        id: nuget_login
+        if: steps.credential.outputs.mode == 'oidc'
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: 🚀 Publish to NuGet
+        if: steps.credential.outputs.mode != 'none'
+        env:
+          NUGET_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push "sdk/dotnet/bin/Debug/*.nupkg" \
+            --api-key "$NUGET_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate

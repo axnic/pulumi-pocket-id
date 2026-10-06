@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+#
+# =============================================================================
+# Codegen Check — Warn contributors about generated SDK code
+# =============================================================================
+# When an external pull request edits the generated SDK code under sdk/, warns its
+# author that the SDKs are generated (codegen) and must not be edited by hand.
+#
+# Jobs:
+#   codegen — warn about hand edits of the generated sdk/, from pulumi.codegen
+#
+# MANAGED BY TERRAFORM (axnic/.github, terraform/modules/workflows) — do not edit by hand.
+# Reusable workflow: https://github.com/axnic/.github/blob/main/.github/workflows/pulumi.codegen.yaml
+# =============================================================================
+
+name: Codegen Check
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened]
+
+# Minimal top-level permissions — each job declares what it needs.
+permissions: {}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # codegen — warn about hand edits of the generated sdk/, from pulumi.codegen
+  # ---------------------------------------------------------------------------
+  codegen:
+    name: 🧩 Codegen Check
+    # Pinned to the axnic/.github commit that last changed this workflow; Terraform keeps it up to date.
+    uses: axnic/.github/.github/workflows/pulumi.codegen.yaml@b1a8a037e3dd0e58a1ad29ed6830fdee29810913 # main
+    secrets: inherit
+    permissions:
+      contents: read
+      pull-requests: write
