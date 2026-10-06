@@ -146,7 +146,9 @@ func (a *OidcClientArgs) Annotate(an infer.Annotator) {
 		"unset.")
 	an.Describe(&a.RefreshTokenDurationMinutes, "The refresh token lifetime in minutes. Pocket-ID's default applies "+
 		"when unset.")
-	an.Describe(&a.BackchannelLogoutURL, "The URL called for OIDC back-channel logout.")
+	an.Describe(&a.BackchannelLogoutURL, "The URL called for OIDC back-channel logout. "+
+		"Requires Pocket-ID v2.17.0 or later: older versions ignore the field, "+
+		"so the provider fails instead of silently dropping it.")
 	an.Describe(&a.Credentials, "The credentials of the client managed here (federated identities).")
 	an.Describe(&a.AllowedUserGroupIDs, "The IDs of the user groups allowed to use the client. Authoritative: "+
 		"the set is replaced on every update, and the client is restricted to these groups when the list is "+
@@ -328,6 +330,11 @@ func (*OidcClient) Create(
 	if err != nil {
 		return infer.CreateResponse[OidcClientState]{}, err
 	}
+	if err := checkBackchannelSupported(req.Inputs, got); err != nil {
+		// Do not leave a half-configured client behind.
+		_ = api.DeleteOidcClient(ctx, created.ID)
+		return infer.CreateResponse[OidcClientState]{}, err
+	}
 	state := oidcClientState(got, req.Inputs, false)
 	state.LogoSHA256, state.DarkLogoSHA256 = logos[0].sha, logos[1].sha
 	return infer.CreateResponse[OidcClientState]{ID: got.ID, Output: state}, nil
@@ -415,6 +422,9 @@ func (*OidcClient) Update(
 	if err != nil {
 		return infer.UpdateResponse[OidcClientState]{}, err
 	}
+	if err := checkBackchannelSupported(req.Inputs, got); err != nil {
+		return infer.UpdateResponse[OidcClientState]{}, err
+	}
 	state := oidcClientState(got, req.Inputs, false)
 	state.LogoSHA256, state.DarkLogoSHA256 = logos[0].sha, logos[1].sha
 	return infer.UpdateResponse[OidcClientState]{Output: state}, nil
@@ -482,7 +492,7 @@ func oidcClientState(c *pocketidclient.OidcClient, prev OidcClientArgs, imported
 		RequiresReauthentication:            c.RequiresReauthentication,
 		RequiresPushedAuthorizationRequests: c.RequiresPushedAuthorizationRequests,
 		SkipConsent:                         c.SkipConsent,
-		BackchannelLogoutURL:                oidcNonEmpty(c.BackchannelLogoutURL),
+		BackchannelLogoutURL:                oidcNonEmpty(oidcDeref(c.BackchannelLogoutURL)),
 		AllowedUserGroupIDs:                 oidcNonEmptySlice(c.AllowedUserGroupIDs()),
 	}
 	if imported {
@@ -527,6 +537,16 @@ func oidcDeref[T any](p *T) T {
 		return zero
 	}
 	return *p
+}
+
+// checkBackchannelSupported fails when backchannelLogoutUrl is set but the
+// server does not know the field (Pocket-ID < v2.17.0 silently ignores it,
+// which would otherwise show up as a permanent drift).
+func checkBackchannelSupported(in OidcClientArgs, got *pocketidclient.OidcClient) error {
+	if oidcDeref(in.BackchannelLogoutURL) != "" && got.BackchannelLogoutURL == nil {
+		return errors.New("backchannelLogoutUrl is not supported by this Pocket-ID version (requires v2.17.0 or later)")
+	}
+	return nil
 }
 
 func oidcNonEmpty(s string) *string {

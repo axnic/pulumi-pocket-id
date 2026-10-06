@@ -45,6 +45,10 @@ type fakePocketID struct {
 	nextID int
 	mux    *http.ServeMux
 
+	// legacyOIDC emulates Pocket-ID < v2.17.0, which does not know the OIDC
+	// client field backchannelLogoutURL (ignored on write, absent on read).
+	legacyOIDC bool
+
 	// Per-domain in-memory stores, keyed by domain name (e.g. "users").
 	// Handlers run under f.mu, so they may read/write them freely.
 	stores map[string]map[string]map[string]any

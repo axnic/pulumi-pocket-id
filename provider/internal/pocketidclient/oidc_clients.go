@@ -69,27 +69,28 @@ type UserGroupRef struct {
 // OidcClient mirrors OidcClientWithAllowedUserGroupsDto. The client secrets
 // are never exposed here.
 type OidcClient struct {
-	ID                                  string                `json:"id"`
-	Name                                string                `json:"name"`
-	Description                         string                `json:"description"`
-	ClientType                          string                `json:"clientType"`
-	CallbackURLs                        []string              `json:"callbackURLs"`
-	LogoutCallbackURLs                  []string              `json:"logoutCallbackURLs"`
-	LaunchURL                           string                `json:"launchURL,omitempty"`
-	HasLogo                             bool                  `json:"hasLogo"`
-	HasDarkLogo                         bool                  `json:"hasDarkLogo"`
-	IsPublic                            bool                  `json:"isPublic"`
-	PkceEnabled                         bool                  `json:"pkceEnabled"`
-	PkceSupported                       bool                  `json:"pkceSupported"`
-	RequiresReauthentication            bool                  `json:"requiresReauthentication"`
-	RequiresPushedAuthorizationRequests bool                  `json:"requiresPushedAuthorizationRequests"`
-	SkipConsent                         bool                  `json:"skipConsent"`
-	IsGroupRestricted                   bool                  `json:"isGroupRestricted"`
-	AccessTokenDurationMinutes          int                   `json:"accessTokenDurationMinutes"`
-	RefreshTokenDurationMinutes         int                   `json:"refreshTokenDurationMinutes"`
-	BackchannelLogoutURL                string                `json:"backchannelLogoutURL,omitempty"`
-	Credentials                         OidcClientCredentials `json:"credentials"`
-	AllowedUserGroups                   []UserGroupRef        `json:"allowedUserGroups"`
+	ID                                  string   `json:"id"`
+	Name                                string   `json:"name"`
+	Description                         string   `json:"description"`
+	ClientType                          string   `json:"clientType"`
+	CallbackURLs                        []string `json:"callbackURLs"`
+	LogoutCallbackURLs                  []string `json:"logoutCallbackURLs"`
+	LaunchURL                           string   `json:"launchURL,omitempty"`
+	HasLogo                             bool     `json:"hasLogo"`
+	HasDarkLogo                         bool     `json:"hasDarkLogo"`
+	IsPublic                            bool     `json:"isPublic"`
+	PkceEnabled                         bool     `json:"pkceEnabled"`
+	PkceSupported                       bool     `json:"pkceSupported"`
+	RequiresReauthentication            bool     `json:"requiresReauthentication"`
+	RequiresPushedAuthorizationRequests bool     `json:"requiresPushedAuthorizationRequests"`
+	SkipConsent                         bool     `json:"skipConsent"`
+	IsGroupRestricted                   bool     `json:"isGroupRestricted"`
+	AccessTokenDurationMinutes          int      `json:"accessTokenDurationMinutes"`
+	RefreshTokenDurationMinutes         int      `json:"refreshTokenDurationMinutes"`
+	// BackchannelLogoutURL is nil when the server predates the field (< v2.17.0).
+	BackchannelLogoutURL *string               `json:"backchannelLogoutURL"`
+	Credentials          OidcClientCredentials `json:"credentials"`
+	AllowedUserGroups    []UserGroupRef        `json:"allowedUserGroups"`
 }
 
 // AllowedUserGroupIDs returns the IDs of the user groups allowed on the client.

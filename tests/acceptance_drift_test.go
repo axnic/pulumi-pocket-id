@@ -125,6 +125,10 @@ func TestE2EOidcClientFullIdempotentAndUpdate(t *testing.T) {
 		"refreshTokenDurationMinutes": property.New(600.0),
 		keyAllowedUserGroupIDs:        e2eStrs(group.id),
 	}
+	if !e.atLeast(2, 17) {
+		// Pocket-ID < v2.17.0 ignores backchannelLogoutURL (the provider rejects it, see the unit tests).
+		delete(in, "backchannelLogoutUrl")
+	}
 	client := e.create("OidcClient", in)
 	e.noDrift(client, in)
 

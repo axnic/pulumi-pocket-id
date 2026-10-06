@@ -801,7 +801,7 @@
         },
         "backchannelLogoutUrl": {
           "type": "string",
-          "description": "The URL called for OIDC back-channel logout."
+          "description": "The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it."
         },
         "callbackUrls": {
           "type": "array",
@@ -929,7 +929,7 @@
         },
         "backchannelLogoutUrl": {
           "type": "string",
-          "description": "The URL called for OIDC back-channel logout."
+          "description": "The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it."
         },
         "callbackUrls": {
           "type": "array",

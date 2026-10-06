@@ -86,7 +86,9 @@ func init() {
 			if _, ok := c["launchURL"]; !ok {
 				c["launchURL"] = nil
 			}
-			if _, ok := c["backchannelLogoutURL"]; !ok {
+			if f.legacyOIDC {
+				delete(c, "backchannelLogoutURL")
+			} else if _, ok := c["backchannelLogoutURL"]; !ok {
 				c["backchannelLogoutURL"] = ""
 			}
 			if _, ok := c["accessTokenDurationMinutes"]; !ok {

@@ -110,6 +110,15 @@ func newE2E(t *testing.T) *e2eEnv {
 	return e
 }
 
+// atLeast reports whether the instance runs Pocket-ID major.minor or later (true when the version is unknown).
+func (e *e2eEnv) atLeast(major, minor int) bool {
+	var maj, mi int
+	if _, err := fmt.Sscanf(strings.TrimPrefix(e.version, "v"), "%d.%d", &maj, &mi); err != nil {
+		return true
+	}
+	return maj > major || (maj == major && mi >= minor)
+}
+
 func e2eURN(typ string) resource.URN {
 	return resource.NewURN("stack", "proj", "", tokens.Type("pocket-id:index:"+typ), "e2e")
 }

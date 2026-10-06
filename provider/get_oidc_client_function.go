@@ -107,7 +107,7 @@ func (*GetOidcClient) Invoke(
 		RequiresPushedAuthorizationRequests: c.RequiresPushedAuthorizationRequests,
 		SkipConsent:                         c.SkipConsent, IsGroupRestricted: c.IsGroupRestricted,
 		AccessTokenDurationMinutes: c.AccessTokenDurationMinutes, RefreshTokenDurationMinutes: c.RefreshTokenDurationMinutes,
-		BackchannelLogoutURL: c.BackchannelLogoutURL, AllowedUserGroupIDs: oidcNilToEmpty(c.AllowedUserGroupIDs()),
+		BackchannelLogoutURL: oidcDeref(c.BackchannelLogoutURL), AllowedUserGroupIDs: oidcNilToEmpty(c.AllowedUserGroupIDs()),
 		FederatedIdentities: []OidcFederatedIdentity{},
 	}
 	if s.Credentials != nil {

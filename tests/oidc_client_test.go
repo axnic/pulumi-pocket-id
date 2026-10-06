@@ -280,3 +280,27 @@ func TestOidcClientDroppedLogoURLDeletesLogo(t *testing.T) {
 	assert.Nil(t, fake.fakeImage("oidc/"+created.ID+"/light"))
 	assert.Nil(t, fake.fakeImage("oidc/"+created.ID+"/dark"))
 }
+
+func TestOidcClientBackchannelLogoutRequiresRecentServer(t *testing.T) {
+	t.Parallel()
+	fake, srv := newFakeServer(t, "test-key")
+	fake.legacyOIDC = true
+	prov := testServer(t)
+	configure(t, prov, srv.URL, fake.apiKey)
+
+	// Without the field, a legacy server is fine.
+	_, err := prov.Create(p.CreateRequest{Urn: urn("OidcClient"), Properties: oidcMap(map[string]property.Value{
+		keyClientID: property.New("plain"), keyName: property.New("Plain"),
+		keyCallbackURLs: oidcStrs("https://app.example.com/callback"),
+	})})
+	require.NoError(t, err)
+
+	// With it, the silent no-op becomes an explicit error and no half-configured client is left behind.
+	_, err = prov.Create(p.CreateRequest{Urn: urn("OidcClient"), Properties: oidcMap(map[string]property.Value{
+		keyClientID: property.New("legacy"), keyName: property.New("Legacy"),
+		keyCallbackURLs:        oidcStrs("https://app.example.com/callback"),
+		"backchannelLogoutUrl": property.New("https://app.example.com/bc"),
+	})})
+	require.ErrorContains(t, err, "requires v2.17.0")
+	assert.Equal(t, 1, oidcCount(fake, "oidcClients"))
+}
