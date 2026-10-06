@@ -29,7 +29,7 @@ namespace Axnic.Pulumi.PocketId
         public Output<ImmutableArray<string>> AllowedUserGroupIds { get; private set; } = null!;
 
         /// <summary>
-        /// The URL called for OIDC back-channel logout.
+        /// The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
         /// </summary>
         [Output("backchannelLogoutUrl")]
         public Output<string?> BackchannelLogoutUrl { get; private set; } = null!;
@@ -247,7 +247,7 @@ namespace Axnic.Pulumi.PocketId
         }
 
         /// <summary>
-        /// The URL called for OIDC back-channel logout.
+        /// The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
         /// </summary>
         [Input("backchannelLogoutUrl")]
         public Input<string>? BackchannelLogoutUrl { get; set; }

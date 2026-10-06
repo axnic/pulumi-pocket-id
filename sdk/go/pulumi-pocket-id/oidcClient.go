@@ -20,7 +20,7 @@ type OidcClient struct {
 	AccessTokenDurationMinutes pulumi.IntPtrOutput `pulumi:"accessTokenDurationMinutes"`
 	// The IDs of the user groups allowed to use the client. Authoritative: the set is replaced on every update, and the client is restricted to these groups when the list is non-empty (unrestricted when empty).
 	AllowedUserGroupIds pulumi.StringArrayOutput `pulumi:"allowedUserGroupIds"`
-	// The URL called for OIDC back-channel logout.
+	// The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
 	BackchannelLogoutUrl pulumi.StringPtrOutput `pulumi:"backchannelLogoutUrl"`
 	// The allowed redirect URLs.
 	CallbackUrls pulumi.StringArrayOutput `pulumi:"callbackUrls"`
@@ -123,7 +123,7 @@ type oidcClientArgs struct {
 	AccessTokenDurationMinutes *int `pulumi:"accessTokenDurationMinutes"`
 	// The IDs of the user groups allowed to use the client. Authoritative: the set is replaced on every update, and the client is restricted to these groups when the list is non-empty (unrestricted when empty).
 	AllowedUserGroupIds []string `pulumi:"allowedUserGroupIds"`
-	// The URL called for OIDC back-channel logout.
+	// The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
 	BackchannelLogoutUrl *string `pulumi:"backchannelLogoutUrl"`
 	// The allowed redirect URLs.
 	CallbackUrls []string `pulumi:"callbackUrls"`
@@ -167,7 +167,7 @@ type OidcClientArgs struct {
 	AccessTokenDurationMinutes pulumi.IntPtrInput
 	// The IDs of the user groups allowed to use the client. Authoritative: the set is replaced on every update, and the client is restricted to these groups when the list is non-empty (unrestricted when empty).
 	AllowedUserGroupIds pulumi.StringArrayInput
-	// The URL called for OIDC back-channel logout.
+	// The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
 	BackchannelLogoutUrl pulumi.StringPtrInput
 	// The allowed redirect URLs.
 	CallbackUrls pulumi.StringArrayInput
@@ -302,7 +302,7 @@ func (o OidcClientOutput) AllowedUserGroupIds() pulumi.StringArrayOutput {
 	return o.ApplyT(func(v *OidcClient) pulumi.StringArrayOutput { return v.AllowedUserGroupIds }).(pulumi.StringArrayOutput)
 }
 
-// The URL called for OIDC back-channel logout.
+// The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
 func (o OidcClientOutput) BackchannelLogoutUrl() pulumi.StringPtrOutput {
 	return o.ApplyT(func(v *OidcClient) pulumi.StringPtrOutput { return v.BackchannelLogoutUrl }).(pulumi.StringPtrOutput)
 }

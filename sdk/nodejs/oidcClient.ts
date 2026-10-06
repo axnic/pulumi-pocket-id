@@ -46,7 +46,7 @@ export class OidcClient extends pulumi.CustomResource {
      */
     declare public readonly allowedUserGroupIds: pulumi.Output<string[] | undefined>;
     /**
-     * The URL called for OIDC back-channel logout.
+     * The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
      */
     declare public readonly backchannelLogoutUrl: pulumi.Output<string | undefined>;
     /**
@@ -236,7 +236,7 @@ export interface OidcClientArgs {
      */
     allowedUserGroupIds?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
-     * The URL called for OIDC back-channel logout.
+     * The URL called for OIDC back-channel logout. Requires Pocket-ID v2.17.0 or later: older versions ignore the field, so the provider fails instead of silently dropping it.
      */
     backchannelLogoutUrl?: pulumi.Input<string | undefined>;
     /**
