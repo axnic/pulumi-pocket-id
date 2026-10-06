@@ -24,7 +24,10 @@ import (
 )
 
 func TestConfigureRequiresBaseUrl(t *testing.T) {
-	t.Parallel()
+	// Not parallel: the provider falls back to these variables, which the E2E
+	// job exports, so they must be cleared for the missing value to be an error.
+	t.Setenv("POCKET_ID_BASE_URL", "")
+	t.Setenv("POCKET_ID_API_KEY", "")
 	prov := testServer(t)
 	err := prov.Configure(p.ConfigureRequest{
 		Args: property.NewMap(map[string]property.Value{
@@ -35,7 +38,10 @@ func TestConfigureRequiresBaseUrl(t *testing.T) {
 }
 
 func TestConfigureRequiresApiKey(t *testing.T) {
-	t.Parallel()
+	// Not parallel: the provider falls back to these variables, which the E2E
+	// job exports, so they must be cleared for the missing value to be an error.
+	t.Setenv("POCKET_ID_BASE_URL", "")
+	t.Setenv("POCKET_ID_API_KEY", "")
 	prov := testServer(t)
 	err := prov.Configure(p.ConfigureRequest{
 		Args: property.NewMap(map[string]property.Value{
@@ -43,4 +49,11 @@ func TestConfigureRequiresApiKey(t *testing.T) {
 		}),
 	})
 	require.Error(t, err)
+}
+
+func TestConfigureFallsBackToEnvironment(t *testing.T) {
+	t.Setenv("POCKET_ID_BASE_URL", "http://localhost:1411")
+	t.Setenv("POCKET_ID_API_KEY", "k")
+	prov := testServer(t)
+	require.NoError(t, prov.Configure(p.ConfigureRequest{Args: property.NewMap(nil)}))
 }
