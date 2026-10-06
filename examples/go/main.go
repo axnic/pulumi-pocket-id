@@ -1,8 +1,9 @@
 package main
 
 import (
-	pocketid "github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
+
+	pocketid "github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id"
 )
 
 // A group of users and an OIDC client only that group may sign in to, plus an
