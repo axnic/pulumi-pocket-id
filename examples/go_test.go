@@ -13,16 +13,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestGoExampleLifecycle drives the go example program's full
+// create/read/update/delete lifecycle against a live Pocket-ID instance.
+// Needs POCKET_ID_BASE_URL/POCKET_ID_API_KEY pointing at one - see
+// `make test_e2e` (Docker) or CONTRIBUTING.md for how to run one locally.
 func TestGoExampleLifecycle(t *testing.T) {
+	requirePocketID(t)
+
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
 
-	module := filepath.Join(cwd, "../sdk/go/pulumi-provider-boilerplate")
+	module := filepath.Join(cwd, "../sdk/go/pulumi-pocket-id")
 	pt := pulumitest.NewPulumiTest(t, "go",
-		opttest.GoModReplacement("github.com/pulumi/pulumi-provider-boilerplate/sdk/go/pulumi-provider-boilerplate", module),
-		opttest.AttachProviderServer("provider-boilerplate", providerFactory),
+		opttest.GoModReplacement("github.com/axnic/pulumi-pocket-id/sdk/go/pulumi-pocket-id", module),
+		opttest.AttachProviderServer("pocket-id", providerFactory),
 		opttest.SkipInstall(),
 	)
+
+	// The provider also falls back to these env vars on its own; setting the
+	// config explicitly keeps the program's stack self-describing.
+	pt.SetConfig(t, "pocket-id:baseUrl", os.Getenv("POCKET_ID_BASE_URL"))
+	pt.SetConfig(t, "pocket-id:apiKey", os.Getenv("POCKET_ID_API_KEY"))
 
 	pt.Preview(t)
 	pt.Up(t)
