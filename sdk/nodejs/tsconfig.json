@@ -1,24 +1,49 @@
 {
     "compilerOptions": {
+        // Output
         "outDir": "bin",
-        "target": "ES2020",
-        "module": "commonjs",
-        "moduleResolution": "node",
         "declaration": true,
+        "declarationMap": true,
         "sourceMap": true,
         "stripInternal": true,
-        "experimentalDecorators": true,
+        // Environment
+        "target": "ES2022",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "moduleDetection": "force",
+        "types": ["node"],
+        // Type Checking
+        "strict": true,
         "noFallthroughCasesInSwitch": true,
-        "forceConsistentCasingInFileNames": true,
-        "strict": true
+        "noImplicitReturns": true,
+        "skipLibCheck": true
     },
     "files": [
+        "api.ts",
+        "apiClientGrant.ts",
+        "applicationConfiguration.ts",
+        "applicationImage.ts",
         "config/index.ts",
         "config/vars.ts",
+        "getOidcClient.ts",
+        "getOpenIdConfiguration.ts",
+        "getUser.ts",
+        "getUserGroup.ts",
         "index.ts",
+        "oidcClient.ts",
+        "oidcClientSecret.ts",
         "provider.ts",
-        "random.ts",
-        "randomComponent.ts",
+        "scimServiceProvider.ts",
+        "signupToken.ts",
+        "types/enums/index.ts",
+        "types/index.ts",
+        "types/input.ts",
+        "types/output.ts",
+        "user.ts",
+        "userCustomClaims.ts",
+        "userGroup.ts",
+        "userGroupCustomClaims.ts",
+        "userGroupMembers.ts",
         "utilities.ts"
     ]
 }

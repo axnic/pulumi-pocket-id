@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Pulumi.ProviderBoilerplate
+namespace Axnic.Pulumi.PocketId
 {
     public static class Config
     {
@@ -30,13 +30,26 @@ namespace Pulumi.ProviderBoilerplate
             }
         }
 
-        private static readonly global::Pulumi.Config __config = new global::Pulumi.Config("provider-boilerplate");
+        private static readonly global::Pulumi.Config __config = new global::Pulumi.Config("pocket-id");
 
-        private static readonly __Value<bool?> _itsasecret = new __Value<bool?>(() => __config.GetBoolean("itsasecret"));
-        public static bool? Itsasecret
+        private static readonly __Value<string?> _apiKey = new __Value<string?>(() => __config.Get("apiKey"));
+        /// <summary>
+        /// A Pocket-ID API key sent with every request in the X-API-Key header. Falls back to the POCKET_ID_API_KEY environment variable if not set.
+        /// </summary>
+        public static string? ApiKey
         {
-            get => _itsasecret.Get();
-            set => _itsasecret.Set(value);
+            get => _apiKey.Get();
+            set => _apiKey.Set(value);
+        }
+
+        private static readonly __Value<string?> _baseUrl = new __Value<string?>(() => __config.Get("baseUrl"));
+        /// <summary>
+        /// The base URL of the Pocket-ID server, e.g. "https://pocket-id.example.com". Falls back to the POCKET_ID_BASE_URL environment variable if not set.
+        /// </summary>
+        public static string? BaseUrl
+        {
+            get => _baseUrl.Get();
+            set => _baseUrl.Set(value);
         }
 
     }
