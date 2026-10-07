@@ -132,7 +132,7 @@ func TestOidcClientRequestOmitsEmptyURLs(t *testing.T) {
 	c, s := recorder(t, 201, `{"id":"app"}`)
 	_, err := c.CreateOidcClient(context.Background(), OidcClientRequest{Name: "App"})
 	require.NoError(t, err)
-	for _, k := range []string{"launchURL", "backchannelLogoutURL", "logoUrl", "darkLogoUrl"} {
+	for _, k := range []string{"launchURL", "backchannelLogoutURL"} {
 		assert.NotContains(t, s.body, k)
 	}
 }

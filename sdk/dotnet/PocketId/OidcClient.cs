@@ -11,7 +11,7 @@ using Pulumi;
 namespace Axnic.Pulumi.PocketId
 {
     /// <summary>
-    /// An OIDC client of Pocket-ID. The client never creates a secret by itself; use OidcClientSecret to generate one. The allowed user groups are owned by this resource. The logos are set either from a URL (logoUrl, darkLogoUrl) or from an uploaded file (logo, darkLogo), never both for the same variant.
+    /// An OIDC client of Pocket-ID. The client never creates a secret by itself; use OidcClientSecret to generate one. The allowed user groups are owned by this resource. The logos are uploaded from files (logo, darkLogo).
     /// </summary>
     [PocketIdResourceType("pocket-id:index:OidcClient")]
     public partial class OidcClient : global::Pulumi.CustomResource
@@ -59,7 +59,7 @@ namespace Axnic.Pulumi.PocketId
         public Output<Outputs.OidcClientCredentials?> Credentials { get; private set; } = null!;
 
         /// <summary>
-        /// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+        /// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
         /// </summary>
         [Output("darkLogo")]
         public Output<AssetOrArchive?> DarkLogo { get; private set; } = null!;
@@ -69,12 +69,6 @@ namespace Axnic.Pulumi.PocketId
         /// </summary>
         [Output("darkLogoSha256")]
         public Output<string?> DarkLogoSha256 { get; private set; } = null!;
-
-        /// <summary>
-        /// A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file).
-        /// </summary>
-        [Output("darkLogoUrl")]
-        public Output<string?> DarkLogoUrl { get; private set; } = null!;
 
         /// <summary>
         /// A description of the client (150 characters max).
@@ -113,7 +107,7 @@ namespace Axnic.Pulumi.PocketId
         public Output<string?> LaunchUrl { get; private set; } = null!;
 
         /// <summary>
-        /// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+        /// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
         /// </summary>
         [Output("logo")]
         public Output<AssetOrArchive?> Logo { get; private set; } = null!;
@@ -123,12 +117,6 @@ namespace Axnic.Pulumi.PocketId
         /// </summary>
         [Output("logoSha256")]
         public Output<string?> LogoSha256 { get; private set; } = null!;
-
-        /// <summary>
-        /// A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file).
-        /// </summary>
-        [Output("logoUrl")]
-        public Output<string?> LogoUrl { get; private set; } = null!;
 
         /// <summary>
         /// The allowed post-logout redirect URLs.
@@ -277,16 +265,10 @@ namespace Axnic.Pulumi.PocketId
         public Input<Inputs.OidcClientCredentialsArgs>? Credentials { get; set; }
 
         /// <summary>
-        /// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+        /// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
         /// </summary>
         [Input("darkLogo")]
         public Input<AssetOrArchive>? DarkLogo { get; set; }
-
-        /// <summary>
-        /// A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file).
-        /// </summary>
-        [Input("darkLogoUrl")]
-        public Input<string>? DarkLogoUrl { get; set; }
 
         /// <summary>
         /// A description of the client (150 characters max).
@@ -307,16 +289,10 @@ namespace Axnic.Pulumi.PocketId
         public Input<string>? LaunchUrl { get; set; }
 
         /// <summary>
-        /// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+        /// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
         /// </summary>
         [Input("logo")]
         public Input<AssetOrArchive>? Logo { get; set; }
-
-        /// <summary>
-        /// A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file).
-        /// </summary>
-        [Input("logoUrl")]
-        public Input<string>? LogoUrl { get; set; }
 
         [Input("logoutCallbackUrls")]
         private InputList<string>? _logoutCallbackUrls;

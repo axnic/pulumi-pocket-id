@@ -45,8 +45,6 @@ type OidcClientRequest struct {
 	CallbackURLs                        []string              `json:"callbackURLs"`
 	LogoutCallbackURLs                  []string              `json:"logoutCallbackURLs"`
 	LaunchURL                           string                `json:"launchURL,omitempty"`
-	LogoURL                             string                `json:"logoUrl,omitempty"`
-	DarkLogoURL                         string                `json:"darkLogoUrl,omitempty"`
 	HasLogo                             bool                  `json:"hasLogo"`
 	HasDarkLogo                         bool                  `json:"hasDarkLogo"`
 	IsPublic                            bool                  `json:"isPublic"`

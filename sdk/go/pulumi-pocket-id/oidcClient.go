@@ -12,7 +12,7 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-// An OIDC client of Pocket-ID. The client never creates a secret by itself; use OidcClientSecret to generate one. The allowed user groups are owned by this resource. The logos are set either from a URL (logoUrl, darkLogoUrl) or from an uploaded file (logo, darkLogo), never both for the same variant.
+// An OIDC client of Pocket-ID. The client never creates a secret by itself; use OidcClientSecret to generate one. The allowed user groups are owned by this resource. The logos are uploaded from files (logo, darkLogo).
 type OidcClient struct {
 	pulumi.CustomResourceState
 
@@ -30,12 +30,10 @@ type OidcClient struct {
 	ClientType pulumi.StringOutput `pulumi:"clientType"`
 	// The credentials of the client managed here (federated identities).
 	Credentials OidcClientCredentialsPtrOutput `pulumi:"credentials"`
-	// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+	// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 	DarkLogo pulumi.AssetOrArchiveOutput `pulumi:"darkLogo"`
 	// The hex SHA-256 digest of the uploaded dark mode logo (see darkLogo). At refresh it is the digest of the bytes currently served by Pocket-ID, so out-of-band changes show up as a diff.
 	DarkLogoSha256 pulumi.StringPtrOutput `pulumi:"darkLogoSha256"`
-	// A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file).
-	DarkLogoUrl pulumi.StringPtrOutput `pulumi:"darkLogoUrl"`
 	// A description of the client (150 characters max).
 	Description pulumi.StringPtrOutput `pulumi:"description"`
 	// Whether the client has a dark mode logo.
@@ -48,12 +46,10 @@ type OidcClient struct {
 	IsPublic pulumi.BoolPtrOutput `pulumi:"isPublic"`
 	// The URL used to launch the application from the Pocket-ID dashboard.
 	LaunchUrl pulumi.StringPtrOutput `pulumi:"launchUrl"`
-	// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+	// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 	Logo pulumi.AssetOrArchiveOutput `pulumi:"logo"`
 	// The hex SHA-256 digest of the uploaded logo (see logo). At refresh it is the digest of the bytes currently served by Pocket-ID, so out-of-band changes show up as a diff.
 	LogoSha256 pulumi.StringPtrOutput `pulumi:"logoSha256"`
-	// A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file).
-	LogoUrl pulumi.StringPtrOutput `pulumi:"logoUrl"`
 	// The allowed post-logout redirect URLs.
 	LogoutCallbackUrls pulumi.StringArrayOutput `pulumi:"logoutCallbackUrls"`
 	// The display name of the client (50 characters max).
@@ -131,20 +127,16 @@ type oidcClientArgs struct {
 	ClientId *string `pulumi:"clientId"`
 	// The credentials of the client managed here (federated identities).
 	Credentials *OidcClientCredentials `pulumi:"credentials"`
-	// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+	// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 	DarkLogo pulumi.AssetOrArchive `pulumi:"darkLogo"`
-	// A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file).
-	DarkLogoUrl *string `pulumi:"darkLogoUrl"`
 	// A description of the client (150 characters max).
 	Description *string `pulumi:"description"`
 	// Whether the client is public (no client secret, PKCE recommended).
 	IsPublic *bool `pulumi:"isPublic"`
 	// The URL used to launch the application from the Pocket-ID dashboard.
 	LaunchUrl *string `pulumi:"launchUrl"`
-	// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+	// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 	Logo pulumi.AssetOrArchive `pulumi:"logo"`
-	// A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file).
-	LogoUrl *string `pulumi:"logoUrl"`
 	// The allowed post-logout redirect URLs.
 	LogoutCallbackUrls []string `pulumi:"logoutCallbackUrls"`
 	// The display name of the client (50 characters max).
@@ -175,20 +167,16 @@ type OidcClientArgs struct {
 	ClientId pulumi.StringPtrInput
 	// The credentials of the client managed here (federated identities).
 	Credentials OidcClientCredentialsPtrInput
-	// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+	// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 	DarkLogo pulumi.AssetOrArchiveInput
-	// A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file).
-	DarkLogoUrl pulumi.StringPtrInput
 	// A description of the client (150 characters max).
 	Description pulumi.StringPtrInput
 	// Whether the client is public (no client secret, PKCE recommended).
 	IsPublic pulumi.BoolPtrInput
 	// The URL used to launch the application from the Pocket-ID dashboard.
 	LaunchUrl pulumi.StringPtrInput
-	// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+	// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 	Logo pulumi.AssetOrArchiveInput
-	// A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file).
-	LogoUrl pulumi.StringPtrInput
 	// The allowed post-logout redirect URLs.
 	LogoutCallbackUrls pulumi.StringArrayInput
 	// The display name of the client (50 characters max).
@@ -327,7 +315,7 @@ func (o OidcClientOutput) Credentials() OidcClientCredentialsPtrOutput {
 	return o.ApplyT(func(v *OidcClient) OidcClientCredentialsPtrOutput { return v.Credentials }).(OidcClientCredentialsPtrOutput)
 }
 
-// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+// The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 func (o OidcClientOutput) DarkLogo() pulumi.AssetOrArchiveOutput {
 	return o.ApplyT(func(v *OidcClient) pulumi.AssetOrArchiveOutput { return v.DarkLogo }).(pulumi.AssetOrArchiveOutput)
 }
@@ -335,11 +323,6 @@ func (o OidcClientOutput) DarkLogo() pulumi.AssetOrArchiveOutput {
 // The hex SHA-256 digest of the uploaded dark mode logo (see darkLogo). At refresh it is the digest of the bytes currently served by Pocket-ID, so out-of-band changes show up as a diff.
 func (o OidcClientOutput) DarkLogoSha256() pulumi.StringPtrOutput {
 	return o.ApplyT(func(v *OidcClient) pulumi.StringPtrOutput { return v.DarkLogoSha256 }).(pulumi.StringPtrOutput)
-}
-
-// A URL from which Pocket-ID fetches the dark mode logo. When unset, the dark logo is removed. It is not read back from the API. Mutually exclusive with darkLogo (uploaded file).
-func (o OidcClientOutput) DarkLogoUrl() pulumi.StringPtrOutput {
-	return o.ApplyT(func(v *OidcClient) pulumi.StringPtrOutput { return v.DarkLogoUrl }).(pulumi.StringPtrOutput)
 }
 
 // A description of the client (150 characters max).
@@ -372,7 +355,7 @@ func (o OidcClientOutput) LaunchUrl() pulumi.StringPtrOutput {
 	return o.ApplyT(func(v *OidcClient) pulumi.StringPtrOutput { return v.LaunchUrl }).(pulumi.StringPtrOutput)
 }
 
-// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
+// The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. An asset cannot be read back: after an import it is empty and must be set in the program, which uploads the logo again if it differs from the served one.
 func (o OidcClientOutput) Logo() pulumi.AssetOrArchiveOutput {
 	return o.ApplyT(func(v *OidcClient) pulumi.AssetOrArchiveOutput { return v.Logo }).(pulumi.AssetOrArchiveOutput)
 }
@@ -380,11 +363,6 @@ func (o OidcClientOutput) Logo() pulumi.AssetOrArchiveOutput {
 // The hex SHA-256 digest of the uploaded logo (see logo). At refresh it is the digest of the bytes currently served by Pocket-ID, so out-of-band changes show up as a diff.
 func (o OidcClientOutput) LogoSha256() pulumi.StringPtrOutput {
 	return o.ApplyT(func(v *OidcClient) pulumi.StringPtrOutput { return v.LogoSha256 }).(pulumi.StringPtrOutput)
-}
-
-// A URL from which Pocket-ID fetches the client logo. When unset, the logo is removed. It is not read back from the API. Mutually exclusive with logo (uploaded file).
-func (o OidcClientOutput) LogoUrl() pulumi.StringPtrOutput {
-	return o.ApplyT(func(v *OidcClient) pulumi.StringPtrOutput { return v.LogoUrl }).(pulumi.StringPtrOutput)
 }
 
 // The allowed post-logout redirect URLs.

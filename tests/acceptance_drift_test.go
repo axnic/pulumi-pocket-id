@@ -25,7 +25,6 @@ import (
 	"image/color"
 	"mime/multipart"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -162,31 +161,6 @@ func TestE2EOidcClientFullIdempotentAndUpdate(t *testing.T) {
 	assert.Equal(t, "https://app.example.com/launch", imp.Get("launchUrl").AsString())
 	assert.Equal(t, 30.0, imp.Get("accessTokenDurationMinutes").AsNumber())
 	assert.Equal(t, []any{group.id}, plain(imp.Get(keyAllowedUserGroupIDs)))
-}
-
-func TestE2EOidcClientLogoURL(t *testing.T) {
-	e := newE2E(t)
-	// Pocket-ID downloads the logo itself and refuses private addresses, so this needs a public URL.
-	in := e2eProps{
-		keyName: property.New(e2eName("logourl")), keyCallbackURLs: e2eStrs("https://app.example.com/cb"),
-		keyLogoURL: property.New("https://www.google.com/favicon.ico"),
-	}
-	client, err := e.tryCreate("OidcClient", in)
-	if err != nil && strings.Contains(err.Error(), "Logo could not be downloaded") {
-		t.Skipf("the instance has no Internet access: %v", err)
-	}
-	require.NoError(t, err)
-	assert.True(t, client.props.Get("hasLogo").AsBool())
-	e.noDrift(client, in)
-	status, _ := e.rawBytes("/api/oidc/clients/" + client.id + "/logo?light=true")
-	assert.Equal(t, http.StatusOK, status)
-
-	// Dropping the URL from the program removes the logo.
-	in2 := e2eProps{keyName: in[keyName], keyCallbackURLs: in[keyCallbackURLs]}
-	e.update(client, in2)
-	e.noDrift(client, in2)
-	status, _ = e.rawBytes("/api/oidc/clients/" + client.id + "/logo?light=true")
-	assert.Equal(t, http.StatusNotFound, status)
 }
 
 func TestE2ESignupTokenTTLIdempotentAndImport(t *testing.T) {
@@ -515,20 +489,6 @@ func TestE2EOidcClientUploadedLogos(t *testing.T) {
 	state = l.refresh(in5)
 	assert.True(t, state.Get(keyDarkSHA).IsNull())
 	assert.Empty(t, l.diff(in5))
-}
-
-func TestE2EOidcClientUploadedLogoExclusiveWithURL(t *testing.T) {
-	e := newE2E(t)
-	in := e2eProps{
-		keyName: property.New(e2eName("excl")), keyCallbackURLs: e2eStrs("https://app.example.com/cb"),
-		keyLogo: imgAsset(t, "logo.png", e2ePNG(t, 8, e2eRed)), keyLogoURL: property.New("https://example.com/logo.png"),
-	}
-	resp, err := e.prov.Check(p.CheckRequest{Urn: e2eURN("OidcClient"), Inputs: property.NewMap(in)})
-	require.NoError(t, err)
-	require.Len(t, resp.Failures, 1)
-	assert.Contains(t, resp.Failures[0].Reason, "mutually exclusive")
-	_, err = e.tryCreate("OidcClient", in)
-	require.ErrorContains(t, err, "mutually exclusive")
 }
 
 var e2eRed = color.RGBA{R: 255, A: 255}
