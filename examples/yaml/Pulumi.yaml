@@ -40,7 +40,6 @@ resources:
       allowedUserGroupIds:
         - ${engineers.id}
       # Uploads the client logo. Use fn::fileAsset: ./logo.png for a file on disk.
-      # Mutually exclusive with logoUrl.
       logo:
         fn::stringAsset: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8" fill="#3366cc"/></svg>'
 

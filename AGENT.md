@@ -43,8 +43,7 @@
   `image` empty (not readable as an asset). `favicon` and `email` cannot be deleted through the API:
   Delete is a no-op for them. In the in-process test harness the returned asset is a plain object, so tests
   re-set it with `asState`.
-- OIDC client logos (`OidcClient.logo` / `darkLogo`, optional assets, mutually exclusive with `logoUrl` /
-  `darkLogoUrl`, checked in Check/Create/Update): there is no custom Diff, the default diff compares the
+- OIDC client logos (`OidcClient.logo` / `darkLogo`, optional assets): there is no custom Diff, the default diff compares the
   state asset to the input asset by hash. The upload happens after the client create/update (POST
   `/logo?light=`), is skipped when `logoSha256` / `darkLogoSha256` already match, and a logo dropped from the
   program is deleted. Read re-downloads a managed logo (asset or digest in state): changed bytes replace the

@@ -19,7 +19,6 @@ import (
 	"errors"
 	"slices"
 
-	p "github.com/pulumi/pulumi-go-provider"
 	"github.com/pulumi/pulumi-go-provider/infer"
 	"github.com/pulumi/pulumi-go-provider/infer/types"
 	"github.com/pulumi/pulumi/sdk/v3/go/common/resource"
@@ -56,8 +55,6 @@ type OidcClientArgs struct {
 	CallbackUrls                        []string               `pulumi:"callbackUrls,optional"`
 	LogoutCallbackUrls                  []string               `pulumi:"logoutCallbackUrls,optional"`
 	LaunchURL                           *string                `pulumi:"launchUrl,optional"`
-	LogoURL                             *string                `pulumi:"logoUrl,optional"`
-	DarkLogoURL                         *string                `pulumi:"darkLogoUrl,optional"`
 	Logo                                *types.AssetOrArchive  `pulumi:"logo,optional"`
 	DarkLogo                            *types.AssetOrArchive  `pulumi:"darkLogo,optional"`
 	IsPublic                            bool                   `pulumi:"isPublic,optional"`
@@ -90,8 +87,7 @@ var _ infer.Annotated = (*OidcClient)(nil)
 func (*OidcClient) Annotate(a infer.Annotator) {
 	a.Describe(&OidcClient{}, "An OIDC client of Pocket-ID. The client never creates a secret by itself; "+
 		"use OidcClientSecret to generate one. The allowed user groups are owned by this resource. "+
-		"The logos are set either from a URL (logoUrl, darkLogoUrl) or from an uploaded file (logo, darkLogo), "+
-		"never both for the same variant.")
+		"The logos are uploaded from files (logo, darkLogo).")
 }
 
 var _ infer.Annotated = (*OidcFederatedIdentity)(nil)
@@ -122,19 +118,13 @@ func (a *OidcClientArgs) Annotate(an infer.Annotator) {
 	an.Describe(&a.CallbackUrls, "The allowed redirect URLs.")
 	an.Describe(&a.LogoutCallbackUrls, "The allowed post-logout redirect URLs.")
 	an.Describe(&a.LaunchURL, "The URL used to launch the application from the Pocket-ID dashboard.")
-	an.Describe(&a.LogoURL, "A URL from which Pocket-ID fetches the client logo. "+
-		"When unset, the logo is removed. It is not read back from the API. "+
-		"Mutually exclusive with logo (uploaded file).")
-	an.Describe(&a.DarkLogoURL, "A URL from which Pocket-ID fetches the dark mode logo. "+
-		"When unset, the dark logo is removed. It is not read back from the API. "+
-		"Mutually exclusive with darkLogo (uploaded file).")
 	an.Describe(&a.Logo, "The client logo (PNG, JPG or SVG) uploaded from a file, as an asset, e.g. a FileAsset. "+
 		"Archives are not supported. A change of content re-uploads the file and removing it deletes the logo. "+
-		"Mutually exclusive with logoUrl. An asset cannot be read back: after an import it is empty and must be "+
+		"An asset cannot be read back: after an import it is empty and must be "+
 		"set in the program, which uploads the logo again if it differs from the served one.")
 	an.Describe(&a.DarkLogo, "The dark mode client logo (PNG, JPG or SVG) uploaded from a file, as an asset, "+
 		"e.g. a FileAsset. Archives are not supported. A change of content re-uploads the file and removing it "+
-		"deletes the logo. Mutually exclusive with darkLogoUrl. An asset cannot be read back: after an import "+
+		"deletes the logo. An asset cannot be read back: after an import "+
 		"it is empty and must be set in the program, which uploads the logo again if it differs from the "+
 		"served one.")
 	an.Describe(&a.IsPublic, "Whether the client is public (no client secret, PKCE recommended).")
@@ -171,39 +161,7 @@ func (s *OidcClientState) Annotate(a infer.Annotator) {
 		"a diff.")
 }
 
-var _ infer.CustomCheck[OidcClientArgs] = (*OidcClient)(nil)
-
-// Check validates the inputs and rejects a logo given both as a URL and as an uploaded file.
-func (*OidcClient) Check(ctx context.Context, req infer.CheckRequest) (infer.CheckResponse[OidcClientArgs], error) {
-	args, failures, err := infer.DefaultCheck[OidcClientArgs](ctx, req.NewInputs)
-	if err != nil {
-		return infer.CheckResponse[OidcClientArgs]{}, err
-	}
-	set := func(key string) bool { v, ok := req.NewInputs.GetOk(key); return ok && !v.IsNull() }
-	for _, pair := range [][2]string{{"logo", "logoUrl"}, {"darkLogo", "darkLogoUrl"}} {
-		if set(pair[0]) && set(pair[1]) {
-			failures = append(failures, p.CheckFailure{Property: pair[0], Reason: logoExclusiveMessage(pair[0], pair[1])})
-		}
-	}
-	return infer.CheckResponse[OidcClientArgs]{Inputs: args, Failures: failures}, nil
-}
-
-func logoExclusiveMessage(file, url string) string {
-	return file + " and " + url + " are mutually exclusive: set the logo either from a URL or from a file, not both"
-}
-
-// validateLogos rejects a logo set both as an uploaded file and as a URL.
-func validateLogos(a OidcClientArgs) error {
-	if hasImage(a.Logo) && oidcDeref(a.LogoURL) != "" {
-		return errors.New(logoExclusiveMessage("logo", "logoUrl"))
-	}
-	if hasImage(a.DarkLogo) && oidcDeref(a.DarkLogoURL) != "" {
-		return errors.New(logoExclusiveMessage("darkLogo", "darkLogoUrl"))
-	}
-	return nil
-}
-
-// hasImage reports whether an optional image input carries an asset or an archive.
+// hasImage reports whether an optional image input carries an asset.
 func hasImage(img *types.AssetOrArchive) bool { return img != nil && !isEmptyImage(*img) }
 
 // logoOp is what a create or an update must do to one logo variant.
@@ -216,10 +174,10 @@ type logoOp struct {
 
 // planLogo decides what to do with one logo variant. The upload is skipped when the digest recorded in the
 // state (the last known content of the logo, refreshed at every read) is the one of the new asset. A logo
-// that was managed (uploaded, or set from a URL) and is no longer wanted is deleted: Pocket-ID keeps it
+// that was managed (uploaded) and is no longer wanted is deleted: Pocket-ID keeps it
 // when an update omits it.
 func planLogo(
-	light bool, now *types.AssetOrArchive, nowURL, wasURL, wasSHA *string, wasManaged bool,
+	light bool, now *types.AssetOrArchive, wasSHA *string, wasManaged bool,
 ) (logoOp, error) {
 	op := logoOp{light: light}
 	switch {
@@ -232,8 +190,7 @@ func planLogo(
 		if wasSHA == nil || *wasSHA != up.sha256 {
 			op.upload = &up
 		}
-	case oidcDeref(nowURL) != "":
-	case oidcDeref(wasURL) != "" || wasManaged:
+	case wasManaged:
 		op.delete = true
 	}
 	return op, nil
@@ -246,11 +203,11 @@ func planLogos(in OidcClientArgs, prev *OidcClientState) ([2]logoOp, error) {
 	}
 	var ops [2]logoOp
 	var err error
-	if ops[0], err = planLogo(true, in.Logo, in.LogoURL, was.LogoURL, was.LogoSHA256,
+	if ops[0], err = planLogo(true, in.Logo, was.LogoSHA256,
 		hasImage(was.Logo) || was.LogoSHA256 != nil); err != nil {
 		return ops, errors.Join(errors.New("invalid logo"), err)
 	}
-	if ops[1], err = planLogo(false, in.DarkLogo, in.DarkLogoURL, was.DarkLogoURL, was.DarkLogoSHA256,
+	if ops[1], err = planLogo(false, in.DarkLogo, was.DarkLogoSHA256,
 		hasImage(was.DarkLogo) || was.DarkLogoSHA256 != nil); err != nil {
 		return ops, errors.Join(errors.New("invalid darkLogo"), err)
 	}
@@ -291,18 +248,12 @@ func (*OidcClient) Create(
 		if req.Inputs.ClientID != nil {
 			id = *req.Inputs.ClientID
 		}
-		if err := validateLogos(req.Inputs); err != nil {
-			return infer.CreateResponse[OidcClientState]{}, err
-		}
 		return infer.CreateResponse[OidcClientState]{ID: id, Output: OidcClientState{
 			OidcClientArgs: req.Inputs,
 			LogoSHA256:     previewLogoSHA(req.Inputs.Logo), DarkLogoSHA256: previewLogoSHA(req.Inputs.DarkLogo),
 		}}, nil
 	}
 	// Everything that can be checked locally is checked before the client exists.
-	if err := validateLogos(req.Inputs); err != nil {
-		return infer.CreateResponse[OidcClientState]{}, err
-	}
 	logos, err := planLogos(req.Inputs, nil)
 	if err != nil {
 		return infer.CreateResponse[OidcClientState]{}, err
@@ -365,7 +316,7 @@ func (*OidcClient) Read(
 }
 
 // refreshLogo re-reads an uploaded logo to detect drift. A logo that is not managed as a file (no asset and no
-// digest in the state: set from a URL, or imported) is left alone, as an asset cannot be read back. When the
+// digest in the state: imported) is left alone, as an asset cannot be read back. When the
 // served bytes differ from the recorded ones, the asset is replaced by one reduced to the served digest so
 // that the next diff schedules a new upload; a logo that is gone (404, or no logo reported) is dropped.
 func refreshLogo(
@@ -395,9 +346,6 @@ func refreshLogo(
 func (*OidcClient) Update(
 	ctx context.Context, req infer.UpdateRequest[OidcClientArgs, OidcClientState],
 ) (infer.UpdateResponse[OidcClientState], error) {
-	if err := validateLogos(req.Inputs); err != nil {
-		return infer.UpdateResponse[OidcClientState]{}, err
-	}
 	if req.DryRun {
 		out := req.State
 		out.OidcClientArgs = req.Inputs
@@ -446,10 +394,6 @@ func oidcClientRequest(a OidcClientArgs) pocketidclient.OidcClientRequest {
 		CallbackURLs:                        a.CallbackUrls,
 		LogoutCallbackURLs:                  a.LogoutCallbackUrls,
 		LaunchURL:                           oidcDeref(a.LaunchURL),
-		LogoURL:                             oidcDeref(a.LogoURL),
-		DarkLogoURL:                         oidcDeref(a.DarkLogoURL),
-		HasLogo:                             oidcDeref(a.LogoURL) != "",
-		HasDarkLogo:                         oidcDeref(a.DarkLogoURL) != "",
 		IsPublic:                            a.IsPublic,
 		PkceEnabled:                         a.PkceEnabled,
 		RequiresReauthentication:            a.RequiresReauthentication,
@@ -472,7 +416,7 @@ func oidcClientRequest(a OidcClientArgs) pocketidclient.OidcClientRequest {
 }
 
 // oidcClientState maps an API client to the resource state. prev holds the
-// inputs known so far: values the API does not return (logo URLs, the optional
+// inputs known so far: values the API does not return (the optional
 // client ID) are carried over from it, and server defaults are not turned into
 // inputs the user never set. imported is true when there is no previous input.
 func oidcClientState(c *pocketidclient.OidcClient, prev OidcClientArgs, imported bool) OidcClientState {
@@ -483,8 +427,6 @@ func oidcClientState(c *pocketidclient.OidcClient, prev OidcClientArgs, imported
 		CallbackUrls:                        oidcNonEmptySlice(c.CallbackURLs),
 		LogoutCallbackUrls:                  oidcNonEmptySlice(c.LogoutCallbackURLs),
 		LaunchURL:                           oidcNonEmpty(c.LaunchURL),
-		LogoURL:                             prev.LogoURL,
-		DarkLogoURL:                         prev.DarkLogoURL,
 		Logo:                                prev.Logo,
 		DarkLogo:                            prev.DarkLogo,
 		IsPublic:                            c.IsPublic,

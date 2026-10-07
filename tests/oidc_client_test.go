@@ -241,44 +241,8 @@ func TestOidcClientOptionalURLsAreOmittedAndStayDriftFree(t *testing.T) {
 		require.NoError(t, err)
 		assert.True(t, read.Inputs.Get("launchUrl").IsNull())
 		assert.True(t, read.Inputs.Get("backchannelLogoutUrl").IsNull())
-		assert.True(t, read.Inputs.Get(keyLogoURL).IsNull())
 		created.Properties = read.Properties
 	}
-}
-
-// Pocket-ID keeps the logo when an update omits the logo URL: dropping logoUrl from the program deletes it.
-func TestOidcClientDroppedLogoURLDeletesLogo(t *testing.T) {
-	t.Parallel()
-	fake, srv := newFakeServer(t, "test-key")
-	prov := testServer(t)
-	configure(t, prov, srv.URL, fake.apiKey)
-
-	inputs := oidcMap(map[string]property.Value{
-		keyName: property.New("Logo"), keyCallbackURLs: oidcStrs("https://a.example.com/cb"),
-		keyLogoURL: property.New("https://img.example.com/logo.png"),
-	})
-	created, err := prov.Create(p.CreateRequest{Urn: urn("OidcClient"), Properties: inputs})
-	require.NoError(t, err)
-	assert.True(t, created.Properties.Get("hasLogo").AsBool())
-	assert.NotNil(t, fake.fakeImage("oidc/"+created.ID+"/light"))
-
-	// Changing the URL keeps a logo; dropping it removes the logo.
-	withDark := inputs.Set("darkLogoUrl", property.New("https://img.example.com/dark.png"))
-	updated, err := prov.Update(p.UpdateRequest{
-		ID: created.ID, Urn: urn("OidcClient"), State: created.Properties, Inputs: withDark,
-	})
-	require.NoError(t, err)
-	assert.True(t, updated.Properties.Get("hasDarkLogo").AsBool())
-
-	bare := inputs.Delete(keyLogoURL)
-	updated, err = prov.Update(p.UpdateRequest{
-		ID: created.ID, Urn: urn("OidcClient"), State: updated.Properties, Inputs: bare,
-	})
-	require.NoError(t, err)
-	assert.False(t, updated.Properties.Get("hasLogo").AsBool())
-	assert.False(t, updated.Properties.Get("hasDarkLogo").AsBool())
-	assert.Nil(t, fake.fakeImage("oidc/"+created.ID+"/light"))
-	assert.Nil(t, fake.fakeImage("oidc/"+created.ID+"/dark"))
 }
 
 func TestOidcClientBackchannelLogoutRequiresRecentServer(t *testing.T) {

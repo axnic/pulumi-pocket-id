@@ -96,13 +96,10 @@ func init() {
 			}
 		}
 
-		// invalid mirrors the real validation: an optional URL sent as "" is a 400 (it must be omitted), and
-		// the logo URLs are downloaded by the server, which stores the image (an update that omits them
-		// keeps the existing logo).
+		// invalid mirrors the real validation: an optional URL sent as "" is a 400 (it must be omitted).
 		invalid := func(w http.ResponseWriter, body map[string]any) bool {
 			for k, msg := range map[string]string{
 				"launchURL": "LaunchURL must be a valid URL", "backchannelLogoutURL": "BackchannelLogoutURL must be a valid URL",
-				keyLogoURL: "LogoURL must be a valid URL", "darkLogoUrl": "DarkLogoURL must be a valid URL",
 			} {
 				if v, ok := body[k].(string); ok && v == "" {
 					writeJSON(w, http.StatusBadRequest, map[string]string{keyError: msg})
@@ -110,15 +107,6 @@ func init() {
 				}
 			}
 			return false
-		}
-		downloadLogos := func(id string, body map[string]any) {
-			for field, variant := range map[string]string{keyLogoURL: "light", "darkLogoUrl": "dark"} {
-				if u, _ := body[field].(string); u != "" {
-					f.store("images")["oidc/"+id+"/"+variant] = map[string]any{
-						imgData: []byte("downloaded:" + u), imgFilename: "logo", imgContentType: "image/png",
-					}
-				}
-			}
 		}
 
 		f.handle("POST /api/oidc/clients", func(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +125,6 @@ func init() {
 			c := map[string]any{"id": id, keyAllowedUserGroupIDs: []any{}}
 			fill(c, body)
 			clients[id] = c
-			downloadLogos(id, body)
 			out := clientDTO(c)
 			if c[keyIsPublic] != true {
 				// Pocket-ID generates a first secret for confidential clients.
@@ -164,7 +151,6 @@ func init() {
 				return
 			}
 			fill(c, body)
-			downloadLogos(r.PathValue("id"), body)
 			writeJSON(w, http.StatusOK, clientDTO(c))
 		})
 		f.handle("DELETE /api/oidc/clients/{id}", func(w http.ResponseWriter, r *http.Request) {

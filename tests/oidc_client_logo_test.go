@@ -27,11 +27,10 @@ import (
 )
 
 const (
-	keyLogo        = "logo"
-	keyDarkLogo    = "darkLogo"
-	keyLogoSHA     = "logoSha256"
-	keyDarkSHA     = "darkLogoSha256"
-	keyDarkLogoURL = "darkLogoUrl"
+	keyLogo     = "logo"
+	keyDarkLogo = "darkLogo"
+	keyLogoSHA  = "logoSha256"
+	keyDarkSHA  = "darkLogoSha256"
 )
 
 // asAsset turns the wire form of an asset (what the in-process harness hands back) into an asset property.
@@ -213,57 +212,6 @@ func TestOidcClientUploadedLogoMissingOnServerIsReuploaded(t *testing.T) {
 	e.fake.setFakeImage("oidc/bare/light", imgPNG2)
 	read = e.read(bare.ID, bare.Properties, logoClientInputs(map[string]property.Value{keyClientID: property.New("bare")}))
 	assert.True(t, read.Properties.Get(keyLogoSHA).IsNull())
-}
-
-func TestOidcClientUploadedLogoAndLogoURLAreExclusive(t *testing.T) {
-	t.Parallel()
-	e := newLogoEnv(t)
-	img := imgAsset(t, "logo.png", imgPNG)
-	existing := e.create(logoClientInputs(nil), false).Properties
-	for _, c := range []struct{ file, url string }{{keyLogo, keyLogoURL}, {keyDarkLogo, keyDarkLogoURL}} {
-		in := logoClientInputs(map[string]property.Value{c.file: img, c.url: property.New("https://img.example.com/x.png")})
-
-		checked, err := e.prov.Check(p.CheckRequest{Urn: e.urn, Inputs: in})
-		require.NoError(t, err)
-		require.Len(t, checked.Failures, 1, c.file)
-		assert.Equal(t, c.file, checked.Failures[0].Property)
-		assert.Contains(t, checked.Failures[0].Reason, "mutually exclusive")
-
-		_, err = e.prov.Create(p.CreateRequest{Urn: e.urn, Properties: in})
-		require.ErrorContains(t, err, "mutually exclusive")
-		_, err = e.prov.Create(p.CreateRequest{Urn: e.urn, Properties: in, DryRun: true})
-		require.ErrorContains(t, err, "mutually exclusive")
-		_, err = e.prov.Update(p.UpdateRequest{ID: "app", Urn: e.urn, State: existing, Inputs: in})
-		require.ErrorContains(t, err, "mutually exclusive")
-	}
-	assert.Equal(t, 1, oidcCount(e.fake, "oidcClients"), "only the client created above exists")
-
-	// Each one alone is fine.
-	checked, err := e.prov.Check(p.CheckRequest{Urn: e.urn, Inputs: logoClientInputs(map[string]property.Value{
-		keyLogo: img, keyDarkLogoURL: property.New("https://img.example.com/x.png"),
-	})})
-	require.NoError(t, err)
-	assert.Empty(t, checked.Failures)
-}
-
-func TestOidcClientUploadedLogoSwitchesBetweenURLAndFile(t *testing.T) {
-	t.Parallel()
-	e := newLogoEnv(t)
-	byURL := logoClientInputs(map[string]property.Value{keyLogoURL: property.New("https://img.example.com/logo.png")})
-	created := e.create(byURL, false)
-	assert.True(t, created.Properties.Get(keyLogoSHA).IsNull())
-
-	// URL -> file: the file replaces the downloaded logo.
-	byFile := logoClientInputs(map[string]property.Value{keyLogo: imgAsset(t, "logo.png", imgPNG)})
-	toFile := e.update(created.ID, created.Properties, byFile)
-	assert.Equal(t, imgPNG, e.fake.fakeImage("oidc/app/light")[imgData])
-	assert.Equal(t, sum(imgPNG), toFile.Properties.Get(keyLogoSHA).AsString())
-
-	// File -> URL: the logo downloaded from the new URL must survive.
-	toURL := e.update(created.ID, retypeLogos(toFile.Properties), byURL)
-	assert.Equal(t, []byte("downloaded:https://img.example.com/logo.png"), e.fake.fakeImage("oidc/app/light")[imgData])
-	assert.True(t, toURL.Properties.Get("hasLogo").AsBool())
-	assert.True(t, toURL.Properties.Get(keyLogoSHA).IsNull())
 }
 
 func TestOidcClientUploadedLogoPreviewMakesNoAPICall(t *testing.T) {

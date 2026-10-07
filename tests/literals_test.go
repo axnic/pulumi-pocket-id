@@ -58,6 +58,5 @@ const (
 	keyFalse                = "false"
 	keyUserGroupIDs         = "userGroupIds"
 	keyTrue                 = "true"
-	keyLogoURL              = "logoUrl"
 	keyCallbackURLs         = "callbackUrls"
 )
